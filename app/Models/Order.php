@@ -107,6 +107,11 @@ class Order extends Model
         return $this->hasMany(OrderPhoto::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function scopeForLocation($query, int $locationId)
     {
         return $query->where('location_id', $locationId);

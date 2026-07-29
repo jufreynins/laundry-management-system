@@ -10,6 +10,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPhotoController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +49,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/orders/{order}/assign', [OrderController::class, 'assign'])->name('orders.assign');
     Route::post('/orders/{order}/photos', [OrderPhotoController::class, 'store'])->name('orders.photos.store');
     Route::get('/orders/{order}/photos/{photo}', [OrderPhotoController::class, 'show'])->name('orders.photos.show');
+    Route::get('/orders/{order}/receipt', [ReceiptController::class, 'show'])->name('orders.receipt');
+    Route::get('/orders/{order}/claim-ticket', [ReceiptController::class, 'claimTicket'])->name('orders.claim-ticket');
+
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
+    Route::post('/payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 

@@ -156,6 +156,33 @@
 **Date**: 2026-07-29
 **Affected Module**: PHP environment configuration (outside the repo), not app code.
 
+## Phase 4 Decisions
+
+### Decision 23: Client-supplied idempotency key prevents duplicate payment submission
+**Decision**: `StorePaymentRequest` requires an `idempotency_key` (a UUID rendered as a hidden field when the order page loads); `Payment.idempotency_key` is a unique column, and `PaymentService::recordPayment()` checks for an existing row with that key before proceeding.
+**Reason**: Cashiers double-clicking "Record Payment" or a network retry must not create two payments for one cash transaction. The key is generated once per page load, so a re-submit of the same form (double-click, back-button resubmit) reuses the same key and is rejected.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/PaymentService.php, app/Http/Requests/StorePaymentRequest.php
+**Trade-off**: A page refresh generates a new key, so this doesn't protect against a deliberately-repeated manual payment — that's an intended behavior (staff can legitimately record two separate cash payments).
+
+### Decision 24: Overpayment is prevented, not converted to store credit
+**Decision**: `PaymentService::recordPayment()` rejects any payment amount greater than the order's current `balance_due`. There is no automatic store-credit/gift-balance creation for excess payment.
+**Reason**: Store credit and gift cards are explicitly out of MVP scope (Section 16). Prevention is the simpler, safe default; credit-handling can be added later as its own feature with its own ledger.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/PaymentService.php
+
+### Decision 25: Void vs. Refund are distinct operations with different authorization and effects
+**Decision**: `void` is for a payment recorded in error (wrong amount, wrong order) — it fully reverses the payment and requires Owner/Manager. `refund` is for money actually returned to a customer after the fact, supports partial amounts, and produces its own immutable `Refund` record while leaving the original `Payment` row intact (marked refunded/partially_refunded).
+**Reason**: These represent different real-world events with different audit trails: a void says "this payment never should have counted"; a refund says "this payment happened and some/all of it was later returned." Conflating them would lose that distinction in reporting and audit logs.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/PaymentService.php, app/Models/Payment.php, app/Models/Refund.php
+
+### Decision 26: Row locking on Order/Payment during financial transactions
+**Decision**: `PaymentService` re-fetches `Order`/`Payment` with `lockForUpdate()` inside each transaction before mutating balances, rather than trusting the model instance passed in.
+**Reason**: Two concurrent payment requests against the same order (e.g. two staff members recording payment simultaneously) must not both read a stale `balance_due` and both succeed, causing an undetected overpayment. Row locking under MySQL serializes these; SQLite (used in tests) treats it as a no-op, which is acceptable since tests run single-threaded.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/PaymentService.php
+
 ## Pending Decisions
 
 (None at this phase)

@@ -97,7 +97,71 @@
                     <dd class="col-sm-6 text-end text-danger">${{ number_format($order->balance_due, 2) }}</dd>
                 </dl>
             </div>
+            <div class="card-footer d-flex gap-2">
+                <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Print Receipt</a>
+                <a href="{{ route('orders.claim-ticket', $order) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Claim Ticket</a>
+            </div>
         </div>
+
+        @can('create', App\Models\Payment::class)
+        <div class="card mb-3">
+            <div class="card-header">Payments</div>
+            <ul class="list-group list-group-flush">
+                @forelse ($order->payments as $payment)
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ $payment->payment_reference }} &mdash; ${{ number_format($payment->amount, 2) }} ({{ $payment->method->label() }})</span>
+                        <span class="badge bg-secondary status-badge">{{ $payment->status->label() }}</span>
+                    </div>
+                    @can('void', $payment)
+                    @if ($payment->status->value === 'completed')
+                    <form method="POST" action="{{ route('payments.void', $payment) }}" class="mt-2 d-flex gap-2">
+                        @csrf
+                        @method('PATCH')
+                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Void reason" required>
+                        <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">Void</button>
+                    </form>
+                    @endif
+                    @endcan
+                    @can('refund', $payment)
+                    @if (in_array($payment->status->value, ['completed', 'partially_refunded']))
+                    <form method="POST" action="{{ route('payments.refund', $payment) }}" class="mt-2 d-flex gap-2">
+                        @csrf
+                        <input type="number" step="0.01" name="amount" class="form-control form-control-sm" placeholder="Amount" required>
+                        <input type="text" name="reason" class="form-control form-control-sm" placeholder="Refund reason" required>
+                        <button type="submit" class="btn btn-sm btn-outline-warning text-nowrap">Refund</button>
+                    </form>
+                    @endif
+                    @endcan
+                </li>
+                @empty
+                <li class="list-group-item text-muted small">No payments recorded yet.</li>
+                @endforelse
+            </ul>
+            @if ($order->balance_due > 0)
+            <div class="card-body">
+                <form method="POST" action="{{ route('payments.store', $order) }}">
+                    @csrf
+                    <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="Amount" value="{{ number_format($order->balance_due, 2) }}" required>
+                        </div>
+                        <div class="col-6">
+                            <select name="method" class="form-select" required>
+                                @foreach (\App\Enums\PaymentMethod::cases() as $method)
+                                    <option value="{{ $method->value }}">{{ $method->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <input type="text" name="reference_note" class="form-control mt-2" placeholder="Reference note (check #, terminal, etc.)">
+                    <button type="submit" class="btn btn-sm btn-primary mt-2">Record Payment</button>
+                </form>
+            </div>
+            @endif
+        </div>
+        @endcan
 
         @can('update', $order)
         <div class="card mb-3">

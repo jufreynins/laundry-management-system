@@ -63,3 +63,12 @@
 - `PATCH orders/{order}/assign` - OrderController@assign - not accountant
 - `POST orders/{order}/photos` - OrderPhotoController@store - not accountant; validated image upload, random filename
 - `GET orders/{order}/photos/{photo}` - OrderPhotoController@show - location-scoped, streams from private disk
+
+## Phase 4 Routes (Implemented)
+
+- `GET orders/{order}/receipt` - ReceiptController@show - location-scoped, printable
+- `GET orders/{order}/claim-ticket` - ReceiptController@claimTicket - location-scoped, printable
+- `GET payments` - PaymentController@index - location-scoped
+- `POST orders/{order}/payments` - PaymentController@store - not accountant; requires idempotency_key
+- `PATCH payments/{payment}/void` - PaymentController@void - Owner/Manager only, requires reason
+- `POST payments/{payment}/refund` - PaymentController@refund - Owner/Manager only, requires reason

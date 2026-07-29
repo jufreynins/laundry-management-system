@@ -175,6 +175,36 @@ Keys:
 - `App\Services\OrderStatusService::transition()` - enforces `OrderStatusTransitions` map; owner-only override path requires non-empty reason, logs `AuditAction::OVERRIDE_STATUS`
 - `App\Services\OrderStatusService::assignStaff()` - staff assignment with audit logging
 
+## Phase 4 Tables
+
+### payments
+- id, payment_reference (PAY-YYYY-000001, via number_sequences per year)
+- order_id (FK restrict), location_id (FK restrict, denormalized for reporting)
+- method (PaymentMethod: cash, external), status (PaymentStatus: completed, voided, refunded, partially_refunded)
+- amount (decimal 10,2), reference_note (nullable)
+- recorded_by (FK restrict)
+- voided_at, voided_by (nullable), void_reason (nullable)
+- idempotency_key (nullable unique) - client-supplied, prevents duplicate submission of the same payment
+- Indexes: (order_id), (location_id, created_at)
+
+### refunds (immutable, no update/delete routes)
+- id, refund_reference (REF-YYYY-000001, via number_sequences per year)
+- payment_id (FK restrict), order_id (FK restrict)
+- amount (decimal 10,2), reason (required text)
+- processed_by (FK restrict), created_at only
+
+## Enums (Phase 4)
+
+### PaymentMethod: cash, external
+### PaymentStatus: completed, voided, refunded, partially_refunded
+
+## Domain Services (Phase 4)
+
+- `App\Services\PaymentService::recordPayment()` - validates amount > 0, prevents overpayment (amount <= order.balance_due), rejects duplicate idempotency_key, updates order.amount_paid/balance_due atomically, logs `PAYMENT_RECORDED`
+- `App\Services\PaymentService::voidPayment()` - only from `completed` status, requires reason, reverses order balance, logged as `UPDATED` with reason
+- `App\Services\PaymentService::refundPayment()` - caps refund at `Payment::refundableAmount()` (amount minus prior refunds), marks payment `refunded`/`partially_refunded`, restores order balance_due, logs `REFUND_ISSUED`
+- Never deletes payments/refunds — void and refund are additive status changes, per the "never permanently delete financial records" rule
+
 ## Relationships
 
 **User**

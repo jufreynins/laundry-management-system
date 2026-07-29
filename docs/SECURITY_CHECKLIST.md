@@ -49,11 +49,14 @@
 - [ ] IDOR protection via policies
 
 ### Financial Security
-- [ ] Database transactions for financial operations
-- [ ] Decimal money fields (no floats)
-- [ ] Audit logs for financial changes
-- [ ] No deletion of financial records (reversal only)
-- [ ] Price never trusted from client
+- [x] Database transactions for financial operations (OrderService, PaymentService — all wrapped in DB::transaction with row locking)
+- [x] Decimal money fields (no floats) — bcmath used throughout, decimal:2 casts
+- [x] Audit logs for financial changes (PAYMENT_RECORDED, REFUND_ISSUED, order/payment UPDATED)
+- [x] No deletion of financial records (Payments/Refunds never deleted — void/refund are additive status changes)
+- [x] Price never trusted from client (OrderService computes all prices server-side from Service records)
+- [x] Duplicate payment submission prevented (client idempotency_key, unique DB constraint)
+- [x] Overpayment prevented (amount capped at order.balance_due)
+- [x] Refund capped at payment's refundable balance
 
 ### Sensitive Information
 - [ ] No SSN storage
