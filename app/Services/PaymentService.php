@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Enums\AuditAction;
+use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
+use App\Services\OnlinePayment\PaymentProvider;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PaymentService
 {
@@ -150,5 +153,105 @@ class PaymentService
 
             return $refund->fresh();
         });
+    }
+
+    /**
+     * Begin a hosted-checkout online payment. Creates a PENDING payment
+     * row for the order's full remaining balance; the order's balance is
+     * NOT touched here — only the verified webhook (confirmOnlinePaymentSucceeded)
+     * is authoritative. The browser returning to a "success" URL never
+     * marks anything paid.
+     */
+    public function initiateOnlineCheckout(Order $order, PaymentProvider $provider): array
+    {
+        if (bccomp((string) $order->balance_due, '0.00', 2) <= 0) {
+            throw new PaymentException('This order has no remaining balance to pay online.');
+        }
+
+        $providerTransactionId = (string) Str::uuid();
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'location_id' => $order->location_id,
+            'method' => PaymentMethod::ONLINE_CARD->value,
+            'status' => PaymentStatus::PENDING->value,
+            'amount' => $order->balance_due,
+            'recorded_by' => $order->created_by,
+            'provider' => $provider->name(),
+            'provider_transaction_id' => $providerTransactionId,
+        ]);
+
+        $checkoutUrl = $provider->createCheckoutSession(
+            $order,
+            $providerTransactionId,
+            route('orders.show', $order),
+            route('orders.show', $order),
+        );
+
+        return ['payment' => $payment, 'checkout_url' => $checkoutUrl];
+    }
+
+    /**
+     * Authoritative confirmation that an online payment succeeded, driven
+     * only by a verified webhook event. Idempotent: replays of the same
+     * event (same provider_transaction_id) are safely ignored once the
+     * payment is no longer pending.
+     */
+    public function confirmOnlinePaymentSucceeded(string $providerTransactionId, array $eventData): ?Payment
+    {
+        return DB::transaction(function () use ($providerTransactionId, $eventData) {
+            $payment = Payment::where('provider_transaction_id', $providerTransactionId)->lockForUpdate()->first();
+
+            if (!$payment || $payment->status !== PaymentStatus::PENDING) {
+                return $payment;
+            }
+
+            $order = Order::where('id', $payment->order_id)->lockForUpdate()->first();
+
+            $payment->update([
+                'status' => PaymentStatus::COMPLETED->value,
+                'payment_method_brand' => $eventData['payment_method_brand'] ?? null,
+                'last_four' => $eventData['last_four'] ?? null,
+                'receipt_url' => $eventData['receipt_url'] ?? null,
+            ]);
+
+            $order->update([
+                'amount_paid' => bcadd((string) $order->amount_paid, (string) $payment->amount, 2),
+                'balance_due' => bcsub((string) $order->balance_due, (string) $payment->amount, 2),
+            ]);
+
+            AuditLogService::record(
+                AuditAction::PAYMENT_RECORDED,
+                $payment,
+                ['status' => PaymentStatus::PENDING->value],
+                ['status' => PaymentStatus::COMPLETED->value, 'amount' => (string) $payment->amount],
+                'Confirmed via provider webhook',
+                $order->location_id,
+            );
+
+            return $payment->fresh();
+        });
+    }
+
+    public function markOnlinePaymentFailed(string $providerTransactionId): ?Payment
+    {
+        $payment = Payment::where('provider_transaction_id', $providerTransactionId)->first();
+
+        if (!$payment || $payment->status !== PaymentStatus::PENDING) {
+            return $payment;
+        }
+
+        $payment->update(['status' => PaymentStatus::FAILED->value]);
+
+        AuditLogService::record(
+            AuditAction::UPDATED,
+            $payment,
+            ['status' => PaymentStatus::PENDING->value],
+            ['status' => PaymentStatus::FAILED->value],
+            'Provider reported payment failure',
+            $payment->location_id,
+        );
+
+        return $payment->fresh();
     }
 }

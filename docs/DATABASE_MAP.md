@@ -285,6 +285,27 @@ No new tables. `App\Services\ReportService` provides read-only aggregate queries
 - `App\Notifications\Channels\SmsChannel` — custom notification channel wrapping `SmsProvider`
 - `OrderStatus::customerLabel()` — collapses internal workflow steps into "In Progress" for anything customer-facing (public tracking page, notifications)
 
+## Phase 9 Additions
+
+### payments (added columns)
+- provider (nullable, e.g. "stub"), provider_transaction_id (nullable unique — the idempotency key for webhook processing)
+- provider_customer_id, payment_method_brand, last_four (4 chars), receipt_url (all nullable, provider-supplied metadata only — never raw card numbers/CVV)
+
+### PaymentStatus (added cases)
+- pending (online payment awaiting webhook confirmation), failed (provider reported failure)
+
+### PaymentMethod (added case)
+- online_card — can ONLY be created via `PaymentService::initiateOnlineCheckout()`; `StorePaymentRequest` explicitly excludes it from the manual cash/external payment endpoint
+
+## Domain Services (Phase 9)
+
+- `App\Services\OnlinePayment\PaymentProvider` interface — `createCheckoutSession()`, `verifyWebhookSignature()`, `parseWebhookPayload()`, `refund()`
+- `App\Services\OnlinePayment\StubPaymentProvider` — MVP default binding; simulates a hosted checkout locally (HMAC-SHA256 signed webhooks, no real vendor). Swap the `AppServiceProvider` binding for a real vendor later with no changes to controllers/services.
+- `PaymentService::initiateOnlineCheckout()` — creates a `pending` Payment for the order's full balance, never touches order.balance_due (only the verified webhook does that)
+- `PaymentService::confirmOnlinePaymentSucceeded()` — the ONLY path that marks an online payment complete and updates order balances; idempotent via `provider_transaction_id` + status check; row-locks Order and Payment
+- `PaymentService::markOnlinePaymentFailed()` — idempotent, no balance change
+- `PaymentWebhookController` — public, CSRF-exempt (`bootstrap/app.php`), signature-verified, rate limited (throttle:60,1)
+
 ## Relationships
 
 **User**

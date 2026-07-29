@@ -26,6 +26,12 @@ class Payment extends Model
         'voided_by',
         'void_reason',
         'idempotency_key',
+        'provider',
+        'provider_transaction_id',
+        'provider_customer_id',
+        'payment_method_brand',
+        'last_four',
+        'receipt_url',
     ];
 
     protected $casts = [

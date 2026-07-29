@@ -261,6 +261,33 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Models/Customer.php, migration adding notify_email/notify_sms
 
+## Phase 9 Decisions
+
+### Decision 38: PaymentProvider ships with a stub implementation, not a real vendor integration
+**Decision**: `App\Services\OnlinePayment\PaymentProvider` is an interface; `StubPaymentProvider` (bound by default in `AppServiceProvider`) simulates a hosted checkout with a local route showing Success/Fail buttons that POST HMAC-signed webhook payloads — no real card processor is integrated.
+**Reason**: Same reasoning as the SMS provider (Decision 35) — no vendor (Stripe, Square, etc.) has been chosen, and picking one is a business/cost decision, not a technical default to guess at. The interface is designed around what any hosted-checkout vendor actually provides (create session → redirect → webhook confirms), so swapping in a real vendor later means writing one class against `PaymentProvider` and changing one `bind()` call — no changes to `PaymentService`, `OnlinePaymentController`, or `PaymentWebhookController`.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/OnlinePayment/, app/Providers/AppServiceProvider.php
+**How to apply**: Never build a real integration by modifying the stub in place — implement a new class against the interface and change the binding.
+
+### Decision 39: The webhook is the only path that can mark an online payment complete
+**Decision**: `PaymentService::confirmOnlinePaymentSucceeded()` is called exclusively from `PaymentWebhookController`, never from the browser-facing checkout-return flow. `OnlinePaymentController@store` only creates a `pending` Payment and redirects to checkout; it never marks anything paid.
+**Reason**: Directly required by the master spec — "Do not mark an order as paid only because the browser returned to a success URL." A customer closing the tab, a network blip on redirect, or a malicious replay of a success URL must never be sufficient to mark an order paid; only a signature-verified, server-to-server event is authoritative.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/PaymentService.php, app/Http/Controllers/OnlinePaymentController.php, app/Http/Controllers/PaymentWebhookController.php
+
+### Decision 40: online_card is excluded from the manual payment-recording endpoint
+**Decision**: `StorePaymentRequest`'s `method` validation is an explicit allow-list of `cash` and `external` only — `online_card` is not accepted there even though it's a valid `PaymentMethod` case.
+**Reason**: Manually recording a payment as "online_card, completed" would let staff mark an order paid without any actual card charge ever happening, defeating the entire point of provider-verified payments. `online_card` payments may only be created via `PaymentService::initiateOnlineCheckout()` (starts `pending`) and completed only by `confirmOnlinePaymentSucceeded()` (webhook-driven).
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Requests/StorePaymentRequest.php
+
+### Decision 41: Webhook signature and idempotency key are the same field (provider_transaction_id), payload transport is POST fields, not header+raw-body
+**Decision**: The stub webhook reads `payload` and `signature` from POST body fields (`$request->input(...)`), rather than a raw request body plus a custom signature header (how Stripe/most real vendors do it).
+**Reason**: An HTML form (used by the stub's simulated checkout page) can't set custom HTTP headers or submit a raw non-form body — POST fields are what's available for a same-app-rendered simulation. The cryptographic verification itself (`hash_hmac` + `hash_equals`) is identical to what a real integration would do; only the transport detail differs for the stub's convenience UI. A real vendor's controller would read its header/raw-body per that vendor's docs and call the same `verifyWebhookSignature()`/`parseWebhookPayload()` methods.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Controllers/PaymentWebhookController.php, app/Services/OnlinePayment/StubPaymentProvider.php
+
 ## Pending Decisions
 
 (None at this phase)

@@ -100,3 +100,9 @@
 ## Phase 8 Routes (Implemented)
 
 - `GET /track/{token}` - TrackingController@show - PUBLIC, unauthenticated, rate limited (throttle:20,1). Exposes only order number, customer-safe status, promised date, delivery type/status, balance due, store name/phone. Never customer PII, internal notes, photos, or DB IDs.
+
+## Phase 9 Routes (Implemented)
+
+- `POST orders/{order}/online-payments` - OnlinePaymentController@store - authenticated, not accountant, location-scoped; redirects to hosted checkout
+- `GET /online-payments/checkout/{providerTransactionId}` - StubCheckoutController@show - PUBLIC (matches a real hosted checkout page not requiring app login), rate limited (throttle:20,1)
+- `POST /webhooks/payments` - PaymentWebhookController@handle - PUBLIC, CSRF-exempt, signature-verified, rate limited (throttle:60,1). The only path that marks an online payment complete.

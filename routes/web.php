@@ -14,12 +14,15 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InventoryItemController;
+use App\Http\Controllers\OnlinePaymentController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\StubCheckoutController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +55,14 @@ Route::get('/track/{token}', [TrackingController::class, 'show'])
     ->middleware('throttle:20,1')
     ->name('public.tracking.show');
 
+Route::get('/online-payments/checkout/{providerTransactionId}', [StubCheckoutController::class, 'show'])
+    ->middleware('throttle:20,1')
+    ->name('online-payments.checkout.show');
+
+Route::post('/webhooks/payments', [PaymentWebhookController::class, 'handle'])
+    ->middleware('throttle:60,1')
+    ->name('webhooks.payments');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -67,6 +78,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/orders/{order}/online-payments', [OnlinePaymentController::class, 'store'])->name('online-payments.store');
     Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
     Route::post('/payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
 

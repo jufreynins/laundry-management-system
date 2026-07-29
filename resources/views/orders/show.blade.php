@@ -151,14 +151,17 @@
                         </div>
                         <div class="col-6">
                             <select name="method" class="form-select" required>
-                                @foreach (\App\Enums\PaymentMethod::cases() as $method)
-                                    <option value="{{ $method->value }}">{{ $method->label() }}</option>
-                                @endforeach
+                                <option value="{{ \App\Enums\PaymentMethod::CASH->value }}">{{ \App\Enums\PaymentMethod::CASH->label() }}</option>
+                                <option value="{{ \App\Enums\PaymentMethod::EXTERNAL->value }}">{{ \App\Enums\PaymentMethod::EXTERNAL->label() }}</option>
                             </select>
                         </div>
                     </div>
                     <input type="text" name="reference_note" class="form-control mt-2" placeholder="Reference note (check #, terminal, etc.)">
-                    <button type="submit" class="btn btn-sm btn-primary mt-2">Record Payment</button>
+                    <button type="submit" class="btn btn-sm btn-primary mt-2">Record Manual Payment</button>
+                </form>
+                <form method="POST" action="{{ route('online-payments.store', $order) }}" class="mt-2">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">Pay Online (Hosted Checkout)</button>
                 </form>
             </div>
             @endif

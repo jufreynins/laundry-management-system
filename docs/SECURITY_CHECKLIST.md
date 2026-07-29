@@ -98,8 +98,8 @@
 
 - [x] Customer data privacy controls (notification preferences, consent fields)
 - [x] Order financial integrity tests (Phase 2/4)
-- [ ] Payment webhook signature verification (Phase 9)
-- [ ] PCI compliance for payment handling (Phase 9)
+- [x] Payment webhook signature verification (Phase 9: HMAC-SHA256, constant-time comparison via hash_equals, rejects invalid/missing signatures with 400)
+- [x] PCI compliance for payment handling (Phase 9: hosted-checkout architecture via PaymentProvider abstraction; this app never collects/stores raw card numbers, CVV, or magnetic-stripe data — only provider-supplied brand/last-four/receipt URL)
 - [x] Secure delivery tracking tokens (Phase 8: 40-char random token, independent of sequential order_number)
 - [x] Rate limiting on public tracking (Phase 8: throttle:20,1 on /track/{token})
 

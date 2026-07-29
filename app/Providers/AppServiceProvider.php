@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\OnlinePayment\PaymentProvider;
+use App\Services\OnlinePayment\StubPaymentProvider;
 use App\Services\Sms\LogSmsProvider;
 use App\Services\Sms\SmsProvider;
 use Illuminate\Pagination\Paginator;
@@ -16,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(SmsProvider::class, LogSmsProvider::class);
+        $this->app->bind(PaymentProvider::class, StubPaymentProvider::class);
     }
 
     /**
