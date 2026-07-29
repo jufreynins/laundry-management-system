@@ -19,6 +19,17 @@ class DeliveryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_delivery_zone_create_form_redirects_with_message_when_no_location_exists(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::OWNER]);
+
+        $response = $this->actingAs($owner)->get(route('delivery-zones.create'));
+
+        $response->assertRedirect(route('delivery-zones.index'));
+        $response->assertSessionHas('status');
+        $this->assertStringContainsString('Location', session('status'));
+    }
+
     public function test_manager_can_schedule_delivery_with_zone_fee(): void
     {
         $location = Location::factory()->create();

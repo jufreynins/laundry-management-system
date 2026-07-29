@@ -47,7 +47,7 @@ class OrderController extends Controller
         return view('orders.index', ['orders' => $orders, 'status' => $status]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorize('create', Order::class);
 
@@ -56,6 +56,10 @@ class OrderController extends Controller
         $locations = $scopedLocationId === null
             ? Location::where('active', true)->orderBy('name')->get()
             : Location::where('id', $scopedLocationId)->get();
+
+        if ($redirect = $this->requireLocationExists($locations, 'orders.index')) {
+            return $redirect;
+        }
 
         $locationId = $scopedLocationId ?? $locations->first()?->id;
 

@@ -25,7 +25,7 @@ class DeliveryZoneController extends Controller
         return view('delivery-zones.index', ['zones' => $query->orderBy('name')->get()]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorize('create', DeliveryZone::class);
 
@@ -33,6 +33,10 @@ class DeliveryZoneController extends Controller
         $locations = $scopedLocationId === null
             ? Location::where('active', true)->orderBy('name')->get()
             : Location::where('id', $scopedLocationId)->get();
+
+        if ($redirect = $this->requireLocationExists($locations, 'delivery-zones.index')) {
+            return $redirect;
+        }
 
         return view('delivery-zones.create', ['locations' => $locations]);
     }

@@ -23,6 +23,17 @@ class OrderTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
+    public function test_create_form_redirects_with_message_when_no_location_exists(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::OWNER]);
+
+        $response = $this->actingAs($owner)->get(route('orders.create'));
+
+        $response->assertRedirect(route('orders.index'));
+        $response->assertSessionHas('status');
+        $this->assertStringContainsString('Location', session('status'));
+    }
+
     public function test_manager_order_list_excludes_other_locations(): void
     {
         $location1 = Location::factory()->create();

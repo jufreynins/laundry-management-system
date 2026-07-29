@@ -29,7 +29,7 @@ class ExpenseController extends Controller
         return view('expenses.index', ['expenses' => $query->paginate(20)]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorize('create', Expense::class);
 
@@ -37,6 +37,10 @@ class ExpenseController extends Controller
         $locations = $scopedLocationId === null
             ? Location::where('active', true)->orderBy('name')->get()
             : Location::where('id', $scopedLocationId)->get();
+
+        if ($redirect = $this->requireLocationExists($locations, 'expenses.index')) {
+            return $redirect;
+        }
 
         return view('expenses.create', [
             'locations' => $locations,

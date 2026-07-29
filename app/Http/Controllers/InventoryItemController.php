@@ -35,7 +35,7 @@ class InventoryItemController extends Controller
         return view('inventory.index', ['items' => $items]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorize('create', InventoryItem::class);
 
@@ -43,6 +43,10 @@ class InventoryItemController extends Controller
         $locations = $scopedLocationId === null
             ? Location::where('active', true)->orderBy('name')->get()
             : Location::where('id', $scopedLocationId)->get();
+
+        if ($redirect = $this->requireLocationExists($locations, 'inventory.index')) {
+            return $redirect;
+        }
 
         return view('inventory.create', [
             'locations' => $locations,

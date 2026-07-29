@@ -24,6 +24,17 @@ class CustomerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_create_form_redirects_with_message_when_no_location_exists(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::OWNER]);
+
+        $response = $this->actingAs($owner)->get(route('customers.create'));
+
+        $response->assertRedirect(route('customers.index'));
+        $response->assertSessionHas('status');
+        $this->assertStringContainsString('Location', session('status'));
+    }
+
     public function test_manager_customer_list_excludes_other_locations(): void
     {
         $location1 = Location::factory()->create();

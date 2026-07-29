@@ -14,6 +14,17 @@ class ExpenseTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_create_form_redirects_with_message_when_no_location_exists(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::OWNER]);
+
+        $response = $this->actingAs($owner)->get(route('expenses.create'));
+
+        $response->assertRedirect(route('expenses.index'));
+        $response->assertSessionHas('status');
+        $this->assertStringContainsString('Location', session('status'));
+    }
+
     public function test_manager_can_record_expense(): void
     {
         $location = Location::factory()->create();

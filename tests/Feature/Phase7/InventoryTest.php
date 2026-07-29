@@ -16,6 +16,17 @@ class InventoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_create_form_redirects_with_message_when_no_location_exists(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::OWNER]);
+
+        $response = $this->actingAs($owner)->get(route('inventory.create'));
+
+        $response->assertRedirect(route('inventory.index'));
+        $response->assertSessionHas('status');
+        $this->assertStringContainsString('Location', session('status'));
+    }
+
     public function test_receiving_stock_increases_quantity(): void
     {
         $location = Location::factory()->create();

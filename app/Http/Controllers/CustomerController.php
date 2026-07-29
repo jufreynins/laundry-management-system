@@ -33,7 +33,7 @@ class CustomerController extends Controller
         return view('customers.index', ['customers' => $customers, 'search' => $search]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorize('create', Customer::class);
 
@@ -41,6 +41,10 @@ class CustomerController extends Controller
         $locations = $scopedLocationId === null
             ? \App\Models\Location::where('active', true)->orderBy('name')->get()
             : \App\Models\Location::where('id', $scopedLocationId)->get();
+
+        if ($redirect = $this->requireLocationExists($locations, 'customers.index')) {
+            return $redirect;
+        }
 
         return view('customers.create', ['locations' => $locations]);
     }
