@@ -17,18 +17,26 @@
                 <label class="form-label">Email</label>
                 <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
             </div>
+            @php $isOwner = auth()->user()->role === \App\Enums\UserRole::OWNER; @endphp
             <div class="mb-3">
                 <label class="form-label">Role</label>
                 <select name="role" class="form-select" required>
                     @foreach (\App\Enums\UserRole::cases() as $role)
+                        @if ($isOwner || $role === $user->role || !in_array($role, [\App\Enums\UserRole::OWNER, \App\Enums\UserRole::MANAGER]))
                         <option value="{{ $role->value }}" {{ old('role', $user->role->value) === $role->value ? 'selected' : '' }}>{{ $role->label() }}</option>
+                        @endif
                     @endforeach
                 </select>
+                @if (!$isOwner)
+                <div class="form-text">Only an Owner can assign Owner or Manager roles.</div>
+                @endif
             </div>
             <div class="mb-3">
                 <label class="form-label">Location</label>
                 <select name="location_id" class="form-select">
+                    @if ($isOwner)
                     <option value="">All Locations (Owner only)</option>
+                    @endif
                     @foreach ($locations as $location)
                         <option value="{{ $location->id }}" {{ old('location_id', $user->location_id) == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
                     @endforeach

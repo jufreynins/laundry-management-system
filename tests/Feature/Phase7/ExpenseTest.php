@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Location;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,6 +24,35 @@ class ExpenseTest extends TestCase
         $response->assertRedirect(route('expenses.index'));
         $response->assertSessionHas('status');
         $this->assertStringContainsString('Location', session('status'));
+    }
+
+    public function test_create_form_redirects_when_no_category_exists(): void
+    {
+        $location = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location->id]);
+
+        $response = $this->actingAs($manager)->get(route('expenses.create'));
+
+        $response->assertRedirect(route('expense-categories.index'));
+        $this->assertStringContainsString('Category', session('status'));
+    }
+
+    public function test_create_form_excludes_suppliers_from_other_locations(): void
+    {
+        $location1 = Location::factory()->create();
+        $location2 = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location1->id]);
+        ExpenseCategory::factory()->create();
+        $ownSupplier = Supplier::factory()->create(['location_id' => $location1->id, 'name' => 'My Own Supplier']);
+        $otherSupplier = Supplier::factory()->create(['location_id' => $location2->id, 'name' => 'Other Location Supplier']);
+        $sharedSupplier = Supplier::factory()->create(['location_id' => null, 'name' => 'Shared Supplier']);
+
+        $response = $this->actingAs($manager)->get(route('expenses.create'));
+
+        $response->assertOk();
+        $response->assertSee('My Own Supplier');
+        $response->assertSee('Shared Supplier');
+        $response->assertDontSee('Other Location Supplier');
     }
 
     public function test_manager_can_record_expense(): void

@@ -34,6 +34,29 @@ class OrderTest extends TestCase
         $this->assertStringContainsString('Location', session('status'));
     }
 
+    public function test_create_form_redirects_when_no_customer_exists(): void
+    {
+        $location = Location::factory()->create();
+        $user = User::factory()->create(['role' => UserRole::CASHIER, 'location_id' => $location->id]);
+
+        $response = $this->actingAs($user)->get(route('orders.create'));
+
+        $response->assertRedirect(route('customers.create'));
+        $this->assertStringContainsString('Customer', session('status'));
+    }
+
+    public function test_create_form_redirects_when_no_service_exists(): void
+    {
+        $location = Location::factory()->create();
+        $user = User::factory()->create(['role' => UserRole::CASHIER, 'location_id' => $location->id]);
+        Customer::factory()->create(['location_id' => $location->id]);
+
+        $response = $this->actingAs($user)->get(route('orders.create'));
+
+        $response->assertRedirect(route('services.index'));
+        $this->assertStringContainsString('Service', session('status'));
+    }
+
     public function test_manager_order_list_excludes_other_locations(): void
     {
         $location1 = Location::factory()->create();

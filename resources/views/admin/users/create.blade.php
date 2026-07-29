@@ -25,20 +25,28 @@
                 <label class="form-label">Confirm Password</label>
                 <input type="password" name="password_confirmation" class="form-control" required minlength="12" maxlength="64">
             </div>
+            @php $isOwner = auth()->user()->role === \App\Enums\UserRole::OWNER; @endphp
             <div class="mb-3">
                 <label class="form-label">Role</label>
                 <select name="role" class="form-select" required>
                     @foreach (\App\Enums\UserRole::cases() as $role)
+                        @if ($isOwner || !in_array($role, [\App\Enums\UserRole::OWNER, \App\Enums\UserRole::MANAGER]))
                         <option value="{{ $role->value }}" {{ old('role') === $role->value ? 'selected' : '' }}>{{ $role->label() }}</option>
+                        @endif
                     @endforeach
                 </select>
+                @if (!$isOwner)
+                <div class="form-text">Only an Owner can create Owner or Manager accounts.</div>
+                @endif
             </div>
             <div class="mb-3">
                 <label class="form-label">Location</label>
                 <select name="location_id" class="form-select">
+                    @if ($isOwner)
                     <option value="">All Locations (Owner only)</option>
+                    @endif
                     @foreach ($locations as $location)
-                        <option value="{{ $location->id }}" {{ old('location_id') == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
+                        <option value="{{ $location->id }}" {{ (old('location_id', $isOwner ? null : $locations->first()?->id)) == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
                     @endforeach
                 </select>
             </div>

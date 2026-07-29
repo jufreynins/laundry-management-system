@@ -6,6 +6,7 @@ use App\Enums\InventoryTransactionType;
 use App\Enums\UserRole;
 use App\Models\InventoryItem;
 use App\Models\Location;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\InventoryException;
 use App\Services\InventoryService;
@@ -25,6 +26,21 @@ class InventoryTest extends TestCase
         $response->assertRedirect(route('inventory.index'));
         $response->assertSessionHas('status');
         $this->assertStringContainsString('Location', session('status'));
+    }
+
+    public function test_create_form_excludes_suppliers_from_other_locations(): void
+    {
+        $location1 = Location::factory()->create();
+        $location2 = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location1->id]);
+        Supplier::factory()->create(['location_id' => $location1->id, 'name' => 'My Own Supplier']);
+        Supplier::factory()->create(['location_id' => $location2->id, 'name' => 'Other Location Supplier']);
+
+        $response = $this->actingAs($manager)->get(route('inventory.create'));
+
+        $response->assertOk();
+        $response->assertSee('My Own Supplier');
+        $response->assertDontSee('Other Location Supplier');
     }
 
     public function test_receiving_stock_increases_quantity(): void

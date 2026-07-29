@@ -68,7 +68,15 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        if ($redirect = $this->requireNotEmpty($customers, 'customers.create', 'You need to add a Customer before you can create an order for them.')) {
+            return $redirect;
+        }
+
         $services = Service::where('active', true)->orderBy('category')->orderBy('name')->get();
+
+        if ($redirect = $this->requireNotEmpty($services, 'services.index', 'You need at least one active Service before you can create an order. Ask an Owner or Manager to add one.')) {
+            return $redirect;
+        }
 
         return view('orders.create', compact('locations', 'customers', 'services'));
     }

@@ -16,6 +16,47 @@ class HardeningTest extends TestCase
 {
     use RefreshDatabase;
 
+    // --- Admin user create/edit forms don't offer choices a non-Owner can't submit ---
+
+    public function test_manager_create_user_form_does_not_offer_owner_or_manager_roles(): void
+    {
+        $location = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location->id]);
+
+        $response = $this->actingAs($manager)->get(route('admin.users.create'));
+
+        $response->assertOk();
+        $response->assertDontSee('value="owner"', false);
+        $response->assertDontSee('value="manager"', false);
+        $response->assertDontSee('All Locations (Owner only)');
+    }
+
+    public function test_owner_create_user_form_offers_all_roles_and_locations_option(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::OWNER]);
+        Location::factory()->create();
+
+        $response = $this->actingAs($owner)->get(route('admin.users.create'));
+
+        $response->assertOk();
+        $response->assertSee('value="owner"', false);
+        $response->assertSee('value="manager"', false);
+        $response->assertSee('All Locations (Owner only)');
+    }
+
+    public function test_manager_edit_user_form_does_not_offer_owner_or_manager_roles(): void
+    {
+        $location = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location->id]);
+        $cashier = User::factory()->create(['role' => UserRole::CASHIER, 'location_id' => $location->id]);
+
+        $response = $this->actingAs($manager)->get(route('admin.users.edit', $cashier));
+
+        $response->assertOk();
+        $response->assertDontSee('value="owner"', false);
+        $response->assertDontSee('value="manager"', false);
+    }
+
     // --- Cross-location FK validation ---
 
     public function test_cannot_assign_order_to_staff_member_from_a_different_location(): void

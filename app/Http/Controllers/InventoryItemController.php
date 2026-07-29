@@ -48,9 +48,17 @@ class InventoryItemController extends Controller
             return $redirect;
         }
 
+        // Only offer suppliers this item's location could actually be saved
+        // with (own location, or shared/no-location suppliers) — otherwise
+        // the dropdown offers choices that fail validation.
+        $supplierQuery = Supplier::where('active', true);
+        if ($scopedLocationId !== null) {
+            $supplierQuery->where(fn ($q) => $q->where('location_id', $scopedLocationId)->orWhereNull('location_id'));
+        }
+
         return view('inventory.create', [
             'locations' => $locations,
-            'suppliers' => Supplier::where('active', true)->orderBy('name')->get(),
+            'suppliers' => $supplierQuery->orderBy('name')->get(),
         ]);
     }
 
