@@ -77,7 +77,7 @@
     </div>
 
     <div class="col-md-5">
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">Payment Summary</div>
             <div class="card-body">
                 <dl class="row mb-0">
@@ -98,6 +98,91 @@
                 </dl>
             </div>
         </div>
+
+        @can('update', $order)
+        <div class="card mb-3">
+            <div class="card-header">Update Status</div>
+            <div class="card-body">
+                @if (count($allowedNext) > 0)
+                <form method="POST" action="{{ route('orders.status', $order) }}" class="mb-3">
+                    @csrf
+                    @method('PATCH')
+                    <div class="mb-2">
+                        <select name="status" class="form-select" required>
+                            @foreach ($allowedNext as $next)
+                                <option value="{{ $next }}">{{ \App\Enums\OrderStatus::from($next)->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">Update Status</button>
+                </form>
+                @else
+                <p class="text-muted small mb-3">No standard transitions available from this status.</p>
+                @endif
+
+                @if (auth()->user()->role === \App\Enums\UserRole::OWNER)
+                <details>
+                    <summary class="small text-muted">Owner override</summary>
+                    <form method="POST" action="{{ route('orders.status', $order) }}" class="mt-2">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="override" value="1">
+                        <div class="mb-2">
+                            <select name="status" class="form-select" required>
+                                @foreach (\App\Enums\OrderStatus::cases() as $s)
+                                    <option value="{{ $s->value }}">{{ $s->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <textarea name="reason" class="form-control" placeholder="Reason for override (required)" required></textarea>
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" name="confirm_override" value="1" class="form-check-input" id="confirm_override" required>
+                            <label class="form-check-label" for="confirm_override">I confirm this manual override</label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-warning">Override Status</button>
+                    </form>
+                </details>
+                @endif
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Assign Staff</div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('orders.assign', $order) }}">
+                    @csrf
+                    @method('PATCH')
+                    <select name="assigned_user_id" class="form-select mb-2">
+                        <option value="">Unassigned</option>
+                        @foreach ($staffOptions as $staff)
+                            <option value="{{ $staff->id }}" {{ $order->assigned_user_id === $staff->id ? 'selected' : '' }}>{{ $staff->name }} ({{ $staff->role->label() }})</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Update Assignment</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Intake Photos</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @forelse ($order->photos as $photo)
+                        <a href="{{ route('orders.photos.show', [$order, $photo]) }}" target="_blank" class="text-decoration-none small">Photo #{{ $photo->id }}</a>
+                    @empty
+                        <span class="text-muted small">No photos uploaded.</span>
+                    @endforelse
+                </div>
+                <form method="POST" action="{{ route('orders.photos.store', $order) }}" enctype="multipart/form-data">
+                    @csrf
+                    <input type="file" name="photo" accept="image/*" class="form-control mb-2" required>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Upload Photo</button>
+                </form>
+            </div>
+        </div>
+        @endcan
     </div>
 </div>
 @endsection

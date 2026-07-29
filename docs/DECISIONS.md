@@ -129,6 +129,33 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Services/OrderService.php
 
+## Phase 3 Decisions
+
+### Decision 19: Garment intake flags stored as JSON on orders, not a separate table
+**Decision**: `garment_flags` (tear, missing_button, broken_zipper, color_bleed_risk, delicate_fabric, items_in_pockets) is a single JSON column on `orders` rather than a normalized `order_garment_flags` table.
+**Reason**: These are simple booleans checked once at intake and never queried individually in reports; a JSON column avoids six extra nullable boolean columns (or a join) for data that's always read/written as a whole with the order.
+**Date**: 2026-07-29
+**Affected Module**: orders migration, app/Models/Order.php
+**Trade-off**: Can't index or query on individual flags. Acceptable — no requirement surfaced for "find all orders with a broken zipper" reporting.
+
+### Decision 20: Intake photos stored on the private `local` disk, served through a policy-checked route
+**Decision**: `OrderPhoto` files are saved via `storeAs()` with a UUID filename (never the original) under `storage/app/private/order-photos/{order_id}/`, and are only readable through `OrderPhotoController@show`, which re-checks `OrderPolicy::view` before streaming.
+**Reason**: Master spec requires private storage, random filenames, and controller-mediated access for intake photos — direct public URLs would leak customer photos to anyone with a guessed link.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Controllers/OrderPhotoController.php, config/filesystems.php (local disk, unchanged default)
+
+### Decision 21: `accepted_if` instead of separate `required_if` + `accepted` for override confirmation
+**Decision**: The override confirmation checkbox uses the single `accepted_if:override,1` rule rather than `required_if:override,1` combined with `accepted`.
+**Reason**: `accepted` is one of Laravel's *implicit* validation rules — it runs even when the field is completely absent from the request, so pairing it with `required_if` still failed validation on every non-override request (a real bug caught by Phase 3 tests). `accepted_if` bakes the condition into the rule itself and only fires when the condition is met.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Requests/UpdateOrderStatusRequest.php
+
+### Decision 22: Enabled the `gd` PHP extension in the local dev environment
+**Decision**: Uncommented `extension=gd` in the project's PHP installation's `php.ini` (`C:\Users\devuser\php\php.ini`).
+**Reason**: Laravel's `UploadedFile::fake()->image()` test helper requires GD to generate in-memory test images; without it every photo-upload test errored with "GD extension is not installed." GD is also the standard extension for any future image processing (thumbnails, re-encoding) needed for uploaded photos.
+**Date**: 2026-07-29
+**Affected Module**: PHP environment configuration (outside the repo), not app code.
+
 ## Pending Decisions
 
 (None at this phase)

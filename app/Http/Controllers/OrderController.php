@@ -2,21 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AssignOrderRequest;
 use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Customer;
 use App\Models\Location;
 use App\Models\Order;
 use App\Models\Service;
+use App\Models\User;
+use App\Enums\OrderStatus;
 use App\Services\OrderPricingException;
 use App\Services\OrderService;
+use App\Services\OrderStatusException;
+use App\Services\OrderStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly OrderService $orderService)
-    {
+    public function __construct(
+        private readonly OrderService $orderService,
+        private readonly OrderStatusService $orderStatusService,
+    ) {
     }
 
     public function index(Request $request): View
@@ -82,6 +90,34 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        return view('orders.show', ['order' => $order->load(['items.service', 'customer', 'location', 'statusHistory.changedBy', 'assignedUser'])]);
+        return view('orders.show', [
+            'order' => $order->load(['items.service', 'customer', 'location', 'statusHistory.changedBy', 'assignedUser', 'photos']),
+            'allowedNext' => \App\Services\OrderStatusTransitions::allowedNext($order->status),
+            'staffOptions' => User::where('location_id', $order->location_id)->where('active', true)->orderBy('name')->get(),
+        ]);
+    }
+
+    public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
+    {
+        try {
+            $this->orderStatusService->transition(
+                $order,
+                OrderStatus::from($request->validated('status')),
+                $request->user(),
+                $request->validated('reason'),
+                $request->boolean('override'),
+            );
+        } catch (OrderStatusException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Order status updated.');
+    }
+
+    public function assign(AssignOrderRequest $request, Order $order): RedirectResponse
+    {
+        $this->orderStatusService->assignStaff($order, $request->validated('assigned_user_id'), $request->user());
+
+        return back()->with('status', 'Order assignment updated.');
     }
 }

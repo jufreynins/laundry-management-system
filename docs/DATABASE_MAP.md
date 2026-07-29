@@ -159,6 +159,22 @@ Keys:
 - `App\Services\OrderStatusTransitions` - centralized status transition map (Phase 3 will enforce this)
 - `App\Services\AuditLogService` - shared audit log writer used by all controllers/services
 
+## Phase 3 Additions
+
+### orders (added columns)
+- garment_flags (json nullable: tear, missing_button, broken_zipper, color_bleed_risk, delicate_fabric, items_in_pockets)
+- customer_declared_item_count (nullable, vs. item_count which is employee-verified)
+- customer_acknowledged (boolean)
+
+### order_photos
+- id, order_id (FK cascade), disk_path (random UUID filename, never original), mime_type, size_bytes, uploaded_by (nullable)
+- Stored on the `local` disk (storage/app/private — not publicly reachable), served only via OrderPhotoController@show after `view` policy check
+
+## Domain Services (Phase 3 additions)
+
+- `App\Services\OrderStatusService::transition()` - enforces `OrderStatusTransitions` map; owner-only override path requires non-empty reason, logs `AuditAction::OVERRIDE_STATUS`
+- `App\Services\OrderStatusService::assignStaff()` - staff assignment with audit logging
+
 ## Relationships
 
 **User**

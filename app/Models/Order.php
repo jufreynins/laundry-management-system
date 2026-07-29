@@ -26,8 +26,11 @@ class Order extends Model
         'created_by',
         'weight_lbs',
         'item_count',
+        'customer_declared_item_count',
         'bag_count',
         'stain_notes',
+        'garment_flags',
+        'customer_acknowledged',
         'customer_instructions',
         'internal_notes',
         'subtotal',
@@ -45,6 +48,8 @@ class Order extends Model
         'intake_at' => 'datetime',
         'promised_at' => 'datetime',
         'rush' => 'boolean',
+        'garment_flags' => 'array',
+        'customer_acknowledged' => 'boolean',
         'weight_lbs' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'discount_amount' => 'decimal:2',
@@ -95,6 +100,11 @@ class Order extends Model
     public function statusHistory(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at');
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(OrderPhoto::class);
     }
 
     public function scopeForLocation($query, int $locationId)

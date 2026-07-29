@@ -56,3 +56,10 @@
 - `GET orders/create` - OrderController@create - not accountant
 - `POST orders` - OrderController@store - not accountant, server-side pricing via OrderService
 - `GET orders/{order}` - OrderController@show - location-scoped
+
+## Phase 3 Routes (Implemented)
+
+- `PATCH orders/{order}/status` - OrderController@updateStatus - not accountant; override requires Owner role + reason + confirm_override checkbox
+- `PATCH orders/{order}/assign` - OrderController@assign - not accountant
+- `POST orders/{order}/photos` - OrderPhotoController@store - not accountant; validated image upload, random filename
+- `GET orders/{order}/photos/{photo}` - OrderPhotoController@show - location-scoped, streams from private disk

@@ -123,6 +123,27 @@
                 <label class="form-label">Stain / Damage Notes</label>
                 <textarea name="stain_notes" class="form-control" rows="2"></textarea>
             </div>
+
+            <div class="mb-3">
+                <label class="form-label d-block">Garment Condition Flags</label>
+                @foreach (['tear' => 'Tear', 'missing_button' => 'Missing Button', 'broken_zipper' => 'Broken Zipper', 'color_bleed_risk' => 'Color Bleed Risk', 'delicate_fabric' => 'Delicate Fabric', 'items_in_pockets' => 'Items Left in Pockets'] as $flag => $label)
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" name="garment_flags[{{ $flag }}]" value="1" class="form-check-input" id="flag_{{ $flag }}">
+                    <label class="form-check-label" for="flag_{{ $flag }}">{{ $label }}</label>
+                </div>
+                @endforeach
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Customer-Declared Item Count</label>
+                <input type="number" min="0" name="customer_declared_item_count" class="form-control">
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="customer_acknowledged" value="1" class="form-check-input" id="customer_acknowledged">
+                <label class="form-check-label" for="customer_acknowledged">Customer has acknowledged the intake condition notes</label>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label">Customer Instructions</label>
                 <textarea name="customer_instructions" class="form-control" rows="2"></textarea>

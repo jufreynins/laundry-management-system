@@ -43,7 +43,7 @@
 - [ ] Allow-list validation for enums
 - [ ] Output escaping in Blade templates
 - [ ] Mass-assignment protection configured
-- [ ] File upload validation (when implemented)
+- [x] File upload validation (Phase 3: order intake photos — MIME/extension allow-list, size cap, dimension bounds, random UUID filenames, private disk storage, policy-checked serving route)
 - [ ] Pagination limits
 - [ ] Sort column allow lists
 - [ ] IDOR protection via policies

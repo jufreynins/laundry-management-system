@@ -9,6 +9,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class)->except(['destroy']);
     Route::resource('services', ServiceController::class)->except(['destroy']);
     Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show']);
+    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+    Route::patch('/orders/{order}/assign', [OrderController::class, 'assign'])->name('orders.assign');
+    Route::post('/orders/{order}/photos', [OrderPhotoController::class, 'store'])->name('orders.photos.store');
+    Route::get('/orders/{order}/photos/{photo}', [OrderPhotoController::class, 'show'])->name('orders.photos.show');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
