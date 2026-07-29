@@ -247,6 +247,28 @@
             </div>
         </div>
         @endcan
+
+        @can('create', App\Models\Delivery::class)
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                Pickup / Delivery
+                <a href="{{ route('deliveries.create', $order) }}" class="btn btn-sm btn-outline-primary">Schedule</a>
+            </div>
+            <ul class="list-group list-group-flush">
+                @forelse ($order->deliveries as $delivery)
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ $delivery->type->label() }} &mdash; {{ $delivery->scheduled_at->format('m/d/Y g:i A') }}</span>
+                        <span class="badge bg-info status-badge">{{ $delivery->status->label() }}</span>
+                    </div>
+                    <small class="text-muted">Driver: {{ $delivery->driver?->name ?? 'Unassigned' }}</small>
+                </li>
+                @empty
+                <li class="list-group-item text-muted small">No pickup or delivery scheduled.</li>
+                @endforelse
+            </ul>
+        </div>
+        @endcan
     </div>
 </div>
 @endsection

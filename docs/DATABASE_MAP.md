@@ -205,6 +205,31 @@ Keys:
 - `App\Services\PaymentService::refundPayment()` - caps refund at `Payment::refundableAmount()` (amount minus prior refunds), marks payment `refunded`/`partially_refunded`, restores order balance_due, logs `REFUND_ISSUED`
 - Never deletes payments/refunds — void and refund are additive status changes, per the "never permanently delete financial records" rule
 
+## Phase 5 Tables
+
+### delivery_zones
+- id, location_id (FK cascade), name, description (nullable), fee (decimal 10,2), active
+
+### deliveries
+- id, order_id (FK cascade), location_id (FK restrict), delivery_zone_id (nullable FK set null)
+- type (DeliveryType: pickup, delivery), status (DeliveryStatus: scheduled, en_route, completed, failed, cancelled)
+- scheduled_at, address/city/state/zip (snapshot, not live customer reference)
+- driver_id (nullable FK users, set null), fee (snapshotted from zone at scheduling time)
+- proof_notes (nullable, required when marking completed), completed_at (nullable)
+- created_by
+- Indexes: (location_id, status), (driver_id, status), (order_id)
+
+## Enums (Phase 5)
+
+### DeliveryType: pickup, delivery
+### DeliveryStatus: scheduled, en_route, completed, failed, cancelled (terminal: completed/failed/cancelled)
+
+## Domain Services (Phase 5)
+
+- `App\Services\DeliveryService::schedule()` - snapshots zone fee at scheduling time; does not auto-transition the parent Order's status (kept decoupled — staff transitions the order separately via the existing status workflow)
+- `App\Services\DeliveryService::updateStatus()` - rejects changes once a delivery is in a terminal state; requires non-empty proof-of-delivery notes to mark `completed`
+- `App\Services\DeliveryService::assignDriver()` - audit logged
+
 ## Relationships
 
 **User**

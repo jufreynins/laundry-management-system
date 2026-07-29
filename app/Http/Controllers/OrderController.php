@@ -91,7 +91,7 @@ class OrderController extends Controller
         $this->authorize('view', $order);
 
         return view('orders.show', [
-            'order' => $order->load(['items.service', 'customer', 'location', 'statusHistory.changedBy', 'assignedUser', 'photos']),
+            'order' => $order->load(['items.service', 'customer', 'location', 'statusHistory.changedBy', 'assignedUser', 'photos', 'payments', 'deliveries.driver']),
             'allowedNext' => \App\Services\OrderStatusTransitions::allowedNext($order->status),
             'staffOptions' => User::where('location_id', $order->location_id)->where('active', true)->orderBy('name')->get(),
         ]);

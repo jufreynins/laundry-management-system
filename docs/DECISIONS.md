@@ -183,6 +183,21 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Services/PaymentService.php
 
+## Phase 5 Decisions
+
+### Decision 27: Delivery status is decoupled from Order status
+**Decision**: Marking a `Delivery` as `en_route` or `completed` does not automatically transition the parent `Order`'s status (e.g. to `out_for_delivery`/`completed`). Staff transition the order separately via the existing `OrderController@updateStatus`.
+**Reason**: Coupling the two would require `OrderStatusTransitions` to special-case delivery-driven transitions and risks an order being auto-completed before staff have verified the order itself (payment collected, quality checked) is actually done. Keeping them independent is simpler and safer; the order status remains a deliberate staff action.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/DeliveryService.php
+**How to apply**: If auto-sync is wanted later, add it as an explicit opt-in rule with its own tests — don't infer it.
+
+### Decision 28: Delivery address is snapshotted, not a live reference to Customer
+**Decision**: `deliveries.address/city/state/zip` are copied from the customer at scheduling time rather than joined live from `customers`.
+**Reason**: If a customer's address changes after a delivery is scheduled, the already-dispatched delivery should still show the address the driver was given, not a silently-changed one.
+**Date**: 2026-07-29
+**Affected Module**: database/migrations/..._create_deliveries_table.php
+
 ## Pending Decisions
 
 (None at this phase)

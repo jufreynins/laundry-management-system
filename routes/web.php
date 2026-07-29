@@ -8,6 +8,9 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\DeliveryZoneController;
+use App\Http\Controllers\DriverController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\PaymentController;
@@ -56,6 +59,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
     Route::post('/payments/{payment}/refund', [PaymentController::class, 'refund'])->name('payments.refund');
+
+    Route::get('/deliveries', [DeliveryController::class, 'index'])->name('deliveries.index');
+    Route::get('/orders/{order}/deliveries/create', [DeliveryController::class, 'create'])->name('deliveries.create');
+    Route::post('/orders/{order}/deliveries', [DeliveryController::class, 'store'])->name('deliveries.store');
+    Route::patch('/deliveries/{delivery}/status', [DeliveryController::class, 'updateStatus'])->name('deliveries.status');
+    Route::patch('/deliveries/{delivery}/driver', [DeliveryController::class, 'assignDriver'])->name('deliveries.driver');
+
+    Route::get('/delivery-zones', [DeliveryZoneController::class, 'index'])->name('delivery-zones.index');
+    Route::get('/delivery-zones/create', [DeliveryZoneController::class, 'create'])->name('delivery-zones.create');
+    Route::post('/delivery-zones', [DeliveryZoneController::class, 'store'])->name('delivery-zones.store');
+
+    Route::get('/driver/deliveries', [DriverController::class, 'index'])->name('driver.index');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 

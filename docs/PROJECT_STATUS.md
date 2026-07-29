@@ -2,6 +2,7 @@
 
 ## Current Phase
 
+**Phase 5: Pickup and Delivery** (COMPLETED)
 **Phase 4: Payments and Receipts** (COMPLETED)
 **Phase 3: Production Workflow** (COMPLETED)
 **Phase 2: Order Intake** (COMPLETED)

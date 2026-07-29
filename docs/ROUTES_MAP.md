@@ -72,3 +72,14 @@
 - `POST orders/{order}/payments` - PaymentController@store - not accountant; requires idempotency_key
 - `PATCH payments/{payment}/void` - PaymentController@void - Owner/Manager only, requires reason
 - `POST payments/{payment}/refund` - PaymentController@refund - Owner/Manager only, requires reason
+
+## Phase 5 Routes (Implemented)
+
+- `GET deliveries` - DeliveryController@index - location-scoped
+- `GET orders/{order}/deliveries/create` - DeliveryController@create - not accountant/driver
+- `POST orders/{order}/deliveries` - DeliveryController@store - not accountant/driver
+- `PATCH deliveries/{delivery}/status` - DeliveryController@updateStatus - assigned driver, or Owner/Manager
+- `PATCH deliveries/{delivery}/driver` - DeliveryController@assignDriver - Owner/Manager only
+- `GET delivery-zones` - DeliveryZoneController@index - location-scoped
+- `GET/POST delivery-zones/create` - DeliveryZoneController@create/store - Owner/Manager only
+- `GET driver/deliveries` - DriverController@index - driver's own active deliveries, mobile-friendly cards
