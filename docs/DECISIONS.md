@@ -100,6 +100,35 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Models/Service.php, app/Models/ServicePrice.php
 
+## Phase 2 Decisions
+
+### Decision 15: Generic number_sequences table for all business identifiers
+**Decision**: Built a single reusable `number_sequences` table + `SequenceGenerator` service (row-locked, transactional atomic increment) rather than deriving order numbers from the auto-increment `id` like Customer numbers.
+**Reason**: Order numbers reset per calendar year (`LND-2026-000001`, then `LND-2027-000001`), which an id-based scheme can't do. The same service will generate `PAY-YYYY-000001` payment references in Phase 4.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/SequenceGenerator.php, app/Models/Order.php
+**Trade-off**: One extra DB round-trip (transaction + row lock) per order/payment creation; acceptable for the volumes involved.
+
+### Decision 16: bcmath for all order money arithmetic
+**Decision**: All subtotal/discount/tax/total math in OrderService uses PHP's bcmath functions (bcadd, bcmul, bcsub, bcdiv, bccomp) operating on string decimals, never float arithmetic.
+**Reason**: Floats cannot represent decimal currency exactly (e.g. 0.1 + 0.2 != 0.3), which is unacceptable for financial totals. bcmath guarantees exact decimal precision.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/OrderService.php
+**Trade-off**: Slightly more verbose than native operators; worth it for correctness.
+
+### Decision 17: Rush fee is not an automatic surcharge
+**Decision**: The `rush` boolean on an order is informational/workflow-only; rush pricing is applied by staff explicitly adding a Rush service line item (ServiceCategory::RUSH), not an automatic percentage multiplier.
+**Reason**: Master spec lists "Same-Day Rush" / "Next-Day Rush" as services with their own price, not a formula. Avoids inventing an untested/undocumented business rule for how much a rush surcharge should be.
+**Date**: 2026-07-29
+**Affected Module**: app/Models/Order.php, OrderService
+**How to apply**: If the business wants automatic rush pricing later, add it as an explicit, testable rule — don't infer a percentage.
+
+### Decision 18: Discount reduces the taxable base proportionally
+**Decision**: When a discount is applied, tax is computed on `taxable_subtotal - (taxable_subtotal * discount / subtotal)`, i.e. the discount is spread proportionally across taxable and non-taxable lines rather than applied only to one bucket.
+**Reason**: Matches standard US retail tax practice (tax is charged on the net amount actually paid for taxable goods) and avoids over- or under-taxing when an order mixes taxable and non-taxable services.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/OrderService.php
+
 ## Pending Decisions
 
 (None at this phase)

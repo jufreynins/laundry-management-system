@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreOrderRequest;
+use App\Models\Customer;
+use App\Models\Location;
+use App\Models\Order;
+use App\Models\Service;
+use App\Services\OrderPricingException;
+use App\Services\OrderService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class OrderController extends Controller
+{
+    public function __construct(private readonly OrderService $orderService)
+    {
+    }
+
+    public function index(Request $request): View
+    {
+        $this->authorize('viewAny', Order::class);
+
+        $user = $request->user();
+        $query = Order::query()->with(['customer', 'location'])->latest('intake_at');
+
+        if (!$user->isAdmin()) {
+            $query->where('location_id', $user->location_id);
+        }
+
+        if ($status = $request->string('status')->trim()->value()) {
+            $query->where('status', $status);
+        }
+
+        $orders = $query->paginate(20)->withQueryString();
+
+        return view('orders.index', ['orders' => $orders, 'status' => $status]);
+    }
+
+    public function create(Request $request): View
+    {
+        $this->authorize('create', Order::class);
+
+        $user = $request->user();
+        $locations = $user->isAdmin()
+            ? Location::where('active', true)->orderBy('name')->get()
+            : Location::where('id', $user->location_id)->get();
+
+        $locationId = $user->location_id ?? $locations->first()?->id;
+
+        $customers = Customer::where('active', true)
+            ->when($locationId, fn ($q) => $q->where('location_id', $locationId))
+            ->orderBy('name')
+            ->get();
+
+        $services = Service::where('active', true)->orderBy('category')->orderBy('name')->get();
+
+        return view('orders.create', compact('locations', 'customers', 'services'));
+    }
+
+    public function store(StoreOrderRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $user = $request->user();
+        if (!$user->isAdmin()) {
+            $data['location_id'] = $user->location_id;
+        }
+
+        try {
+            $order = $this->orderService->createOrder($data, $user->id);
+        } catch (OrderPricingException $e) {
+            return back()->withInput()->withErrors(['items' => $e->getMessage()]);
+        }
+
+        return redirect()->route('orders.show', $order)->with('status', 'Order created successfully.');
+    }
+
+    public function show(Order $order): View
+    {
+        $this->authorize('view', $order);
+
+        return view('orders.show', ['order' => $order->load(['items.service', 'customer', 'location', 'statusHistory.changedBy', 'assignedUser'])]);
+    }
+}

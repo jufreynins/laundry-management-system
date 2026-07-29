@@ -49,3 +49,10 @@
 - `resource admin/users` (except destroy) - Admin\UserController - owner/manager only
 - `resource admin/locations` (except destroy) - Admin\LocationController - owner/manager view; owner-scoped create/update
 - `GET/PATCH admin/settings` - Admin\BusinessSettingsController - admin only
+
+## Phase 2 Routes (Implemented)
+
+- `GET orders` - OrderController@index - location-scoped, all authenticated
+- `GET orders/create` - OrderController@create - not accountant
+- `POST orders` - OrderController@store - not accountant, server-side pricing via OrderService
+- `GET orders/{order}` - OrderController@show - location-scoped

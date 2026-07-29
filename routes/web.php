@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('customers', CustomerController::class)->except(['destroy']);
     Route::resource('services', ServiceController::class)->except(['destroy']);
+    Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show']);
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 

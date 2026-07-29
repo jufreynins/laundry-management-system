@@ -2,6 +2,7 @@
 
 ## Current Phase
 
+**Phase 2: Order Intake** (COMPLETED)
 **Phase 1: Customers and Services** (COMPLETED)
 **Phase 0: Project Foundation** (COMPLETED, backfilled with auth/layout/settings)
 

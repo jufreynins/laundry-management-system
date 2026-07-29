@@ -124,6 +124,41 @@ Keys:
 ### PricingType: per_pound, per_item, flat_fee, hourly, custom_quote
 ### ServiceCategory: wash_fold, wash_press, dry_cleaning, alterations, shoe_cleaning, delivery, rush, add_on
 
+## Phase 2 Tables
+
+### orders
+- id, order_number (LND-YYYY-000001, via number_sequences per year)
+- customer_id (FK restrict), location_id (FK restrict)
+- intake_channel (enum), status (OrderStatus enum), intake_at, promised_at
+- rush, assigned_user_id (nullable), created_by
+- weight_lbs, item_count, bag_count (nullable)
+- stain_notes, customer_instructions, internal_notes (nullable text)
+- subtotal, discount_amount, tax_amount, tip_amount, total, amount_paid, balance_due (decimal 10,2)
+- Indexes: (location_id, status), (customer_id), (location_id, promised_at)
+
+### order_items
+- id, order_id (FK cascade), service_id (FK restrict)
+- description, pricing_type, quantity, unit_price, line_total (snapshotted from Service at order time)
+- taxable (snapshotted)
+
+### order_status_histories (immutable, no update/delete routes)
+- id, order_id, from_status (nullable), to_status, changed_by (nullable), reason (nullable), is_override, created_at only
+
+### number_sequences (generic atomic sequence generator)
+- id, key (unique, e.g. "order-2026"), next_value
+- Used via SequenceGenerator::next() with row locking inside a DB transaction
+
+## Enums (Phase 2)
+
+### IntakeChannel: walk_in, pickup, delivery, commercial
+
+## Domain Services
+
+- `App\Services\OrderService::createOrder()` - the only path that creates orders; wraps everything in one DB transaction, computes all prices/tax/totals server-side from `Service` records (never trusts client-submitted prices)
+- `App\Services\SequenceGenerator` - atomic, DB-safe number generation (order numbers, will be reused for payment numbers in Phase 4)
+- `App\Services\OrderStatusTransitions` - centralized status transition map (Phase 3 will enforce this)
+- `App\Services\AuditLogService` - shared audit log writer used by all controllers/services
+
 ## Relationships
 
 **User**
