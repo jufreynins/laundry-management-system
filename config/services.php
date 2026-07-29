@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'stub_payment' => [
+        'webhook_secret' => env('STUB_PAYMENT_WEBHOOK_SECRET', 'stub-dev-secret-change-me'),
+    ],
+
 ];

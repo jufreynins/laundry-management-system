@@ -288,6 +288,65 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Http/Controllers/PaymentWebhookController.php, app/Services/OnlinePayment/StubPaymentProvider.php
 
+## Phase 10 Decisions — Final Hardening Review
+
+An independent authorization/IDOR review (Explore agent, read-only) was run against the full codebase. Findings and fixes:
+
+### Decision 42: FIXED (CRITICAL) — Manager could self-promote to Owner or create Owner/Manager accounts
+**Finding**: `StoreUserRequest`/`UpdateUserRequest` validated `role` against the full `UserRole` enum with no ceiling, and `UserPolicy::create`/`update` only required `isAdmin()` (true for Manager). A Manager could `PATCH` their own user record with `role=owner`, or create a brand-new Owner account outright.
+**Fix**: Both FormRequests now reject a `role` of `owner` or `manager` in the payload unless the acting user is already an Owner (checked via `withValidator`). Editing one's own profile without changing the existing role is still allowed (compares against the *current* role, not a blanket ban) so Managers can still update their own name/email.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Requests/Admin/StoreUserRequest.php, UpdateUserRequest.php
+
+### Decision 43: FIXED (HIGH) — Admin user list and locations list had no location scoping
+**Finding**: `Admin\UserController::index()`/`edit()` and `Admin\LocationController::index()` returned every user/location in the business regardless of the viewer's assigned location — the same bug class fixed for other controllers in Phase 6 (Decision 29), missed here because these are "admin" routes.
+**Fix**: Both now filter by `scopedLocationId()`, consistent with every other list view in the app. `LocationPolicy::viewAny` tightened from `true` to `isAdmin()` (previously any authenticated user, including Cashier/Driver, could load `/admin/locations`).
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Controllers/Admin/UserController.php, app/Http/Controllers/Admin/LocationController.php, app/Policies/LocationPolicy.php
+
+### Decision 44: FIXED (HIGH) — Audit log viewer had no role restriction
+**Finding**: `AuditLogController::index()` scoped by location but had no role check at all — any authenticated Cashier, Laundry Staff, or Driver could read the full audit trail for their location, including refund/void reasons, role-change history, and old/new field values for customer records.
+**Fix**: Restricted to Owner/Manager/Accountant, matching the Reports page precedent from Phase 6. Nav link hidden for other roles too.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Controllers/AuditLogController.php, resources/views/layouts/app.blade.php
+
+### Decision 45: FIXED (MEDIUM) — IDOR in Business Settings via `?location_id=`
+**Finding**: `BusinessSettingsController::index()` authorized only at the class level (`viewAny` → `isAdmin()`) and then trusted a raw `?location_id=` query parameter with `findOrFail`, with no per-location check. A Manager could read another location's tax rate, hours, and terms notice by changing the query string.
+**Fix**: The requested `location_id` is now resolved only from the set of locations the actor is already scoped to; anything else returns 403 before the per-record `view` policy check even runs.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Controllers/Admin/BusinessSettingsController.php
+
+### Decision 46: FIXED (LOW) — Cross-location foreign keys validated only with `exists:`, not location-matched
+**Finding**: `assigned_user_id` (order assignment), `driver_id` (delivery assignment/scheduling), `delivery_zone_id`, and `supplier_id` were validated with plain `exists:table,id`, allowing e.g. a delivery at Location A to be assigned to a driver who only works at Location B — a data-integrity/operational-confusion issue rather than a direct data leak.
+**Fix**: These now use `Rule::exists(...)->where('location_id', ...)` scoped to the record's own location (suppliers additionally allow `location_id IS NULL` since they may be intentionally shared per Decision 32). `SupplierController::store()` also now forces `location_id` server-side for non-Owner actors, matching every other create endpoint.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Requests/AssignOrderRequest.php, ScheduleDeliveryRequest.php, StoreExpenseRequest.php, StoreInventoryItemRequest.php, app/Http/Controllers/DeliveryController.php, SupplierController.php, app/Policies/SupplierPolicy.php
+
+### Decision 47: Session cookie security forced in production regardless of `.env` drift
+**Decision**: `AppServiceProvider::boot()` now forces `session.secure`, `session.http_only`, and `session.same_site` to safe values whenever `APP_ENV=production`, in addition to the existing `URL::forceScheme('https')` call.
+**Reason**: Defense in depth — a misconfigured or missing `SESSION_SECURE_COOKIE` env var in production should not silently downgrade cookie security.
+**Date**: 2026-07-29
+**Affected Module**: app/Providers/AppServiceProvider.php
+
+### Decision 48: Rate limiting added to the entire authenticated route group
+**Decision**: Added `throttle:120,1` to the whole `auth` middleware group in `routes/web.php`, on top of the existing per-route limits (login, password reset, public tracking, webhook).
+**Reason**: Defense in depth against a compromised or scripted authenticated session hammering any endpoint. 120 requests/minute is generous enough not to interfere with normal staff usage (confirmed against the full test suite) while bounding automated abuse.
+**Date**: 2026-07-29
+**Affected Module**: routes/web.php
+
+## Final Hardening Checklist Status
+
+- [x] Authorization review (independent agent pass + manual follow-up fixes)
+- [x] IDOR review (5 concrete findings, all fixed — see Decisions 42-46)
+- [x] Validation review (mass-assignment allow-lists confirmed tight across all FormRequests)
+- [x] Upload-security review (Phase 3 controls re-verified: random filenames, private disk, MIME/size/dimension limits)
+- [x] Financial-integrity review (bcmath throughout, DB transactions with row locking on all money mutations, no hard-deletes of Payments/Refunds/Expenses)
+- [x] Rate-limit review (login, password reset, public tracking, checkout, webhook, and now the full authenticated group)
+- [x] Production configuration review (forced HTTPS + secure cookies in production, debug mode defaults false, dependency audits clean)
+- [x] Backup and restore documentation (docs/BACKUP_RESTORE.md)
+- [x] Dependency audit (`composer audit` and `npm audit` — zero vulnerabilities)
+- [x] Full automated test suite (230 tests passing)
+
 ## Pending Decisions
 
-(None at this phase)
+(None — MVP scope complete through Phase 10)

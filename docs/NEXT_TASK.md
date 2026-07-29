@@ -1,57 +1,30 @@
 # Next Task
 
-## For Next Session
+## Status
 
-**Phase 1: Customers and Services**
+All 10 phases from the original master build plan are complete. The MVP defined in Section 16 is fully implemented, tested (230 tests passing), and hardened (Phase 10 IDOR/authorization review complete — see docs/DECISIONS.md #42-46).
 
-### What to Do
-1. Read CLAUDE.md, PROJECT_STATUS.md, DATABASE_MAP.md, DECISIONS.md
-2. Create Customer model and migration
-   - name (required)
-   - email (unique, nullable)
-   - phone (US format)
-   - address, city, state, zip (optional)
-   - location_id (required, belongs to location)
-   - preferences (json: communication_consent, marketing_consent)
-   - active (boolean)
-3. Create Service model and migration
-   - name (e.g., "Wash and Fold")
-   - category (enum: wash_fold, dry_clean, alterations, etc.)
-   - pricing_type (enum: per_pound, per_item, flat_fee, hourly, custom)
-   - base_price (decimal 10,2)
-   - minimum_charge (decimal 10,2, nullable)
-   - taxable (boolean)
-   - estimated_duration (integer minutes)
-   - location_id (nullable for location-specific overrides)
-   - active (boolean)
-4. Create LocationService (pivot) if location-specific pricing needed
-5. Create CustomerPolicy for authorization
-6. Create ServicePolicy for authorization
-7. Create CustomerController and ServiceController (CRUD)
-8. Create validation forms (CustomerFormRequest, ServiceFormRequest)
-9. Create Blade views for CRUD (customers, services)
-10. Create comprehensive tests for:
-    - Customer creation and retrieval
-    - Customer authorization (only own location can access)
-    - Service creation and pricing
-    - Location-specific service pricing
-    - Duplicate customer name warning (query from same location)
-    - Service validation (price > 0, etc.)
-11. Run tests: `php artisan test --filter Phase1`
-12. Verify all tests pass
-13. Update PROJECT_STATUS.md
+**There is no queued next phase.** Future work should come from explicit user/business direction, not automatic continuation.
 
-### Critical Files to Check First
-- `CLAUDE.md` - project rules and conventions
-- `docs/DATABASE_MAP.md` - table structure
-- `docs/DECISIONS.md` - architectural decisions
+## If Asked to Continue Building
 
-### Stop When
-- All Phase 1 tests pass
-- Customers can be created and edited per location
-- Services can be created with multiple pricing types
-- Authorization prevents cross-location customer access
-- Duplicate customer detection works
+Read in this order before touching code:
+1. `CLAUDE.md` — conventions and mandatory security rules
+2. `docs/PROJECT_STATUS.md` — what exists today
+3. `docs/DATABASE_MAP.md` — schema
+4. `docs/DECISIONS.md` — why things are built the way they are (especially the Phase 6 and Phase 10 security-fix entries — don't reintroduce those bugs)
+5. `docs/SECURITY_CHECKLIST.md` — current control status and accepted gaps
 
-### Do NOT Start Phase 2
-Do not implement orders until Phase 1 is complete and thoroughly tested.
+## Likely Next Real-World Requests (not yet built, all deliberately deferred)
+
+- **Real payment vendor integration**: Implement `App\Services\OnlinePayment\PaymentProvider` against Stripe/Square/etc. and swap the `AppServiceProvider` binding. No controller or service changes needed — see DECISIONS.md #38.
+- **Real SMS vendor integration**: Same pattern against `App\Services\Sms\SmsProvider` — see DECISIONS.md #35.
+- **Email verification enforcement**: The column exists; add the `MustVerifyEmail` contract to `User` and route middleware if the business wants it.
+- **Gift cards / store credit**: Explicitly out of MVP scope (Section 16). Would need its own ledger, separate from the current overpayment-prevention design (DECISIONS.md #24).
+- **Advanced commercial accounts**: Section 16 excludes this from MVP; `intake_channel` already has a `commercial` value as a placeholder but no dedicated commercial-account billing exists.
+
+## Do Not
+
+- Re-derive whether Manager should be treated as "admin" for location-scoping — it should not; use `User::scopedLocationId()` (DECISIONS.md #29, #42-46 document two rounds of this exact bug).
+- Add a new list/index view without checking `scopedLocationId()` on it.
+- Add a payment method, refund path, or financial mutation without wrapping it in a DB transaction with row locking, matching the existing `PaymentService`/`OrderService`/`InventoryService` pattern.

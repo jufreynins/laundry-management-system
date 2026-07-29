@@ -9,15 +9,21 @@ use App\Http\Requests\Admin\UpdateLocationRequest;
 use App\Models\Location;
 use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LocationController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Location::class);
 
-        $locations = Location::orderBy('name')->paginate(20);
+        $query = Location::query();
+        if ($locationId = $request->user()->scopedLocationId()) {
+            $query->where('id', $locationId);
+        }
+
+        $locations = $query->orderBy('name')->paginate(20);
 
         return view('admin.locations.index', ['locations' => $locations]);
     }

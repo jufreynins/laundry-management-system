@@ -25,8 +25,19 @@ class BusinessSettingsController extends Controller
     {
         $this->authorize('viewAny', \App\Models\BusinessSettings::class);
 
-        $locationId = $request->integer('location_id') ?: Location::where('active', true)->value('id');
-        $location = Location::findOrFail($locationId);
+        $scopedLocationId = $request->user()->scopedLocationId();
+        $locations = $scopedLocationId === null
+            ? Location::where('active', true)->orderBy('name')->get()
+            : Location::where('id', $scopedLocationId)->get();
+
+        $requestedLocationId = $request->integer('location_id') ?: null;
+        $location = $requestedLocationId
+            ? $locations->firstWhere('id', $requestedLocationId)
+            : $locations->first();
+
+        abort_if($location === null, 403);
+
+        $this->authorize('view', new \App\Models\BusinessSettings(['location_id' => $location->id]));
 
         $settings = [];
         foreach (self::KEYS as $key) {
@@ -35,7 +46,7 @@ class BusinessSettingsController extends Controller
 
         return view('admin.settings.index', [
             'location' => $location,
-            'locations' => Location::where('active', true)->orderBy('name')->get(),
+            'locations' => $locations,
             'settings' => $settings,
         ]);
     }

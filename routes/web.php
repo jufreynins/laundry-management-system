@@ -63,7 +63,7 @@ Route::post('/webhooks/payments', [PaymentWebhookController::class, 'handle'])
     ->middleware('throttle:60,1')
     ->name('webhooks.payments');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:120,1'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('customers', CustomerController::class)->except(['destroy']);

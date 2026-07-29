@@ -17,7 +17,11 @@ class SupplierPolicy
 
     public function view(User $user, Supplier $supplier): bool
     {
-        return $this->viewAny($user);
+        if (!$this->viewAny($user)) {
+            return false;
+        }
+
+        return $supplier->location_id === null || $user->canAccessLocation($supplier->location);
     }
 
     public function create(User $user): bool
@@ -27,7 +31,11 @@ class SupplierPolicy
 
     public function update(User $user, Supplier $supplier): bool
     {
-        return $user->isAdmin();
+        if (!$user->isAdmin()) {
+            return false;
+        }
+
+        return $supplier->location_id === null || $user->canAccessLocation($supplier->location);
     }
 
     public function delete(User $user, Supplier $supplier): bool

@@ -31,4 +31,27 @@ class StoreUserRequest extends FormRequest
             'active' => ['boolean'],
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $actor = $this->user();
+
+            // Only Owner may create another Owner or Manager account —
+            // a location Manager cannot escalate a new user to their own
+            // level or above.
+            if (!$actor->hasRole(UserRole::OWNER)) {
+                $requestedRole = $this->input('role');
+                if (in_array($requestedRole, [UserRole::OWNER->value, UserRole::MANAGER->value], true)) {
+                    $validator->errors()->add('role', 'Only an Owner can create Owner or Manager accounts.');
+                }
+            }
+
+            // A non-Owner is confined to creating users at their own location.
+            $scopedLocationId = $actor->scopedLocationId();
+            if ($scopedLocationId !== null && (int) $this->input('location_id') !== $scopedLocationId) {
+                $validator->errors()->add('location_id', 'You can only create users for your own location.');
+            }
+        });
+    }
 }

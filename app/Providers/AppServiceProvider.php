@@ -30,6 +30,14 @@ class AppServiceProvider extends ServiceProvider
 
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
+
+            // Defense in depth: enforce secure session cookies in production
+            // regardless of .env configuration drift.
+            config([
+                'session.secure' => true,
+                'session.http_only' => true,
+                'session.same_site' => 'lax',
+            ]);
         }
     }
 }

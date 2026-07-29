@@ -10,16 +10,23 @@ use App\Models\Location;
 use App\Models\User;
 use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', User::class);
 
-        $users = User::with('location')->orderBy('name')->paginate(20);
+        $query = User::with('location');
+
+        if ($locationId = $request->user()->scopedLocationId()) {
+            $query->where('location_id', $locationId);
+        }
+
+        $users = $query->orderBy('name')->paginate(20);
 
         return view('admin.users.index', ['users' => $users]);
     }
@@ -28,9 +35,12 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        return view('admin.users.create', [
-            'locations' => Location::where('active', true)->orderBy('name')->get(),
-        ]);
+        $scopedLocationId = auth()->user()->scopedLocationId();
+        $locations = $scopedLocationId === null
+            ? Location::where('active', true)->orderBy('name')->get()
+            : Location::where('id', $scopedLocationId)->get();
+
+        return view('admin.users.create', ['locations' => $locations]);
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
@@ -56,10 +66,12 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        return view('admin.users.edit', [
-            'user' => $user,
-            'locations' => Location::where('active', true)->orderBy('name')->get(),
-        ]);
+        $scopedLocationId = auth()->user()->scopedLocationId();
+        $locations = $scopedLocationId === null
+            ? Location::where('active', true)->orderBy('name')->get()
+            : Location::where('id', $scopedLocationId)->get();
+
+        return view('admin.users.edit', ['user' => $user, 'locations' => $locations]);
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse

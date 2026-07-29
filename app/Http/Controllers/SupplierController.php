@@ -26,18 +26,27 @@ class SupplierController extends Controller
         return view('suppliers.index', ['suppliers' => $query->orderBy('name')->paginate(20)]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorize('create', Supplier::class);
 
-        return view('suppliers.create', [
-            'locations' => \App\Models\Location::where('active', true)->orderBy('name')->get(),
-        ]);
+        $scopedLocationId = $request->user()->scopedLocationId();
+        $locations = $scopedLocationId === null
+            ? \App\Models\Location::where('active', true)->orderBy('name')->get()
+            : \App\Models\Location::where('id', $scopedLocationId)->get();
+
+        return view('suppliers.create', ['locations' => $locations]);
     }
 
     public function store(StoreSupplierRequest $request): RedirectResponse
     {
-        Supplier::create($request->validated());
+        $data = $request->validated();
+
+        if ($scopedLocationId = $request->user()->scopedLocationId()) {
+            $data['location_id'] = $scopedLocationId;
+        }
+
+        Supplier::create($data);
 
         return redirect()->route('suppliers.index')->with('status', 'Supplier created successfully.');
     }

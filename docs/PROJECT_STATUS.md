@@ -2,6 +2,9 @@
 
 ## Current Phase
 
+**All 10 phases COMPLETED.** MVP (Section 16 of the master spec) is fully built and hardened.
+
+**Phase 10: Final Hardening** (COMPLETED) — independent authorization/IDOR review, 5 findings fixed (see DECISIONS.md #42-46), production config hardening, backup/restore docs, dependency audits clean
 **Phase 9: Hosted Online Payment** (COMPLETED)
 **Phase 8: Public Tracking and Notifications** (COMPLETED)
 **Phase 7: Inventory and Expenses** (COMPLETED)
@@ -15,51 +18,48 @@
 
 ## Completed Modules
 
-- [x] Project initialization
-- [x] Database schema (locations, business_settings, audit_logs)
-- [x] Enums (UserRole, AuditAction, OrderStatus)
-- [x] Models (User, Location, BusinessSettings, AuditLog)
-- [x] Factories (UserFactory, LocationFactory)
-- [x] Policies (UserPolicy, LocationPolicy, BusinessSettingsPolicy)
-- [x] Role-based authorization
-- [x] Location-based access control
-- [x] Audit log foundation
-- [x] 27 automated tests (all passing)
+- [x] Authentication (login, logout, password reset, rate limiting, generic failure messages)
+- [x] Role-based + location-based authorization (`UserRole` enum, `User::scopedLocationId()`)
+- [x] Business/location settings, audit log foundation
+- [x] Customer management (search, duplicate detection, notification preferences)
+- [x] Service catalog with 5 pricing types + location-specific price overrides
+- [x] Order intake with server-side pricing (never trusts client-submitted prices), bcmath decimal math
+- [x] Production workflow: centralized status transition map, owner-authorized overrides, garment intake flags, private intake photo storage
+- [x] Payments: cash/external/online, partial payments, void, refund, receipts, claim tickets
+- [x] Pickup/delivery scheduling, driver assignment, mobile driver view
+- [x] Dashboard + reports (orders today, revenue, sales by service/location, tax summary, payment summary)
+- [x] Inventory (stock ledger, reorder threshold) + expenses (create-only, immutable)
+- [x] Public order tracking (random token, customer-safe fields only, rate limited) + email/SMS notifications
+- [x] Hosted online payment via PaymentProvider abstraction, signed webhooks, idempotent processing
+- [x] Final hardening: IDOR review, privilege-escalation fixes, production security config, backup/restore docs
 
-## Completed Implementation Details
+## Test Suite
 
-1. ✓ Laravel initialization with Laravel 13
-2. ✓ Created base enums (UserRole, AuditAction, OrderStatus)
-3. ✓ Updated User model with roles, location_id, active status
-4. ✓ Created Location model with business settings helper methods
-5. ✓ Created BusinessSettings model for location-specific configuration
-6. ✓ Created AuditLog model for immutable audit trail
-7. ✓ Created policies for authorization (User, Location, BusinessSettings)
-8. ✓ Implemented role-based access control (Owner, Manager, Cashier, Staff, Driver, Accountant)
-9. ✓ Implemented location-based access control (Owner can access any location, others restricted to assigned location)
-10. ✓ Database migrations complete and tested
-11. ✓ Comprehensive test suite with 27 tests
-
-## Known Issues
-
-None yet.
-
-## Latest Test Command
+**230 tests passing** across 10 phase-organized test directories (`tests/Feature/Phase0` through `Phase10`).
 
 ```bash
-php artisan test --filter Phase0
+php artisan test
 ```
 
-## Important Notes
+## Known Issues / Accepted Gaps (documented in SECURITY_CHECKLIST.md)
 
-- Database uses SQLite for testing, will be MySQL in production
-- Application key generated successfully
-- Default Laravel migrations created (users, cache, jobs tables)
+- No "logout from other sessions" self-service UI (out of MVP scope)
+- Email verification column exists but isn't enforced at login (acceptable for a small internal staff team)
+- `business_settings.encrypted` column exists but nothing currently needs it
 
 ## Environment
 
-- PHP: 8.4
-- Laravel: 13.x
-- Composer: 2.10.2
-- Node: 24.14.0
-- npm: 11.9.0
+- PHP: 8.4, Laravel: 13.x
+- Database: SQLite for testing, MySQL for production
+- Composer/npm dependency audits: clean (see DECISIONS.md Phase 10 section)
+
+## What's NOT Built (explicitly out of MVP scope per master spec Section 16)
+
+SaaS subscriptions, advanced accounting/payroll, machine IoT, native mobile app, route optimization, complex CRM, AI features, loyalty points, gift cards, real payment-vendor integration (StubPaymentProvider is the placeholder — see DECISIONS.md #38), advanced commercial contracts.
+
+## Suggested Next Steps (beyond MVP, if the business wants to continue)
+
+1. Choose and integrate a real payment vendor (Stripe/Square) against the existing `PaymentProvider` interface — no other code changes needed.
+2. Choose and integrate a real SMS vendor against the existing `SmsProvider` interface.
+3. Enforce email verification if/when the business wants self-service password resets to be fully trustworthy.
+4. Add a "logout from other sessions" control if multi-device session hygiene becomes a concern.

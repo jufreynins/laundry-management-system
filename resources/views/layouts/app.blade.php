@@ -62,9 +62,11 @@
                     <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">Settings</a>
                 </li>
                 @endif
+                @if(auth()->user()->hasRole(\App\Enums\UserRole::OWNER, \App\Enums\UserRole::MANAGER, \App\Enums\UserRole::ACCOUNTANT))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}">Audit Logs</a>
                 </li>
+                @endif
                 @endauth
             </ul>
         </nav>

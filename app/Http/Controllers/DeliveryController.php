@@ -12,6 +12,7 @@ use App\Services\DeliveryException;
 use App\Services\DeliveryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class DeliveryController extends Controller
@@ -79,7 +80,13 @@ class DeliveryController extends Controller
     {
         $this->authorize('update', $delivery);
 
-        $request->validate(['driver_id' => ['nullable', 'integer', 'exists:users,id']]);
+        $request->validate([
+            'driver_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('users', 'id')->where('location_id', $delivery->location_id),
+            ],
+        ]);
 
         $this->deliveryService->assignDriver($delivery, $request->integer('driver_id') ?: null, $request->user());
 
