@@ -11,12 +11,16 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\DeliveryZoneController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -74,6 +78,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/driver/deliveries', [DriverController::class, 'index'])->name('driver.index');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+    Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('suppliers.create');
+    Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+
+    Route::get('/inventory', [InventoryItemController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/create', [InventoryItemController::class, 'create'])->name('inventory.create');
+    Route::post('/inventory', [InventoryItemController::class, 'store'])->name('inventory.store');
+    Route::get('/inventory/{item}', [InventoryItemController::class, 'show'])->name('inventory.show');
+    Route::post('/inventory/{inventoryItem}/transactions', [InventoryItemController::class, 'recordTransaction'])->name('inventory.transactions.store');
+
+    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+
+    Route::get('/expense-categories', [ExpenseCategoryController::class, 'index'])->name('expense-categories.index');
+    Route::post('/expense-categories', [ExpenseCategoryController::class, 'store'])->name('expense-categories.store');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 

@@ -88,3 +88,11 @@
 
 - `GET reports` - ReportController@index - Owner/Manager/Accountant only; date-range filtered; cross-location "Sales by Location" only when `scopedLocationId()` is null
 - `GET dashboard` (existing route, enhanced) - now shows orders today, revenue today, amount due, orders-by-status, ready-for-pickup count, overdue orders — all location-scoped via `scopedLocationId()`
+
+## Phase 7 Routes (Implemented)
+
+- `GET/POST suppliers`, `GET suppliers/create` - SupplierController - view: Owner/Manager/Accountant; create: Owner/Manager
+- `GET/POST inventory`, `GET inventory/create`, `GET inventory/{item}` - InventoryItemController - view: +Laundry Staff; create: Owner/Manager only
+- `POST inventory/{inventoryItem}/transactions` - InventoryItemController@recordTransaction - Owner/Manager/Laundry Staff, location-scoped
+- `GET/POST expenses`, `GET expenses/create` - ExpenseController - view: Owner/Manager/Accountant; create: Owner/Manager (financial record, create-only, never updated/deleted)
+- `GET/POST expense-categories` - ExpenseCategoryController - view: Owner/Manager; create: Owner only

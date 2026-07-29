@@ -240,6 +240,35 @@ No new tables. `App\Services\ReportService` provides read-only aggregate queries
 
 `User::scopedLocationId()` — see DECISIONS.md #29. The canonical way to scope any list/report query by location; returns null only for `OWNER`.
 
+## Phase 7 Tables
+
+### suppliers
+- id, location_id (nullable FK set null — null means shared across all locations)
+- name, contact_name, phone, email, address, notes, active
+
+### inventory_items
+- id, location_id (FK cascade), supplier_id (nullable FK set null)
+- name, unit (e.g. "bottle", "box"), current_quantity, reorder_threshold, cost_per_unit (decimal 10,2)
+- active
+
+### inventory_transactions (immutable ledger, no update/delete routes)
+- id, inventory_item_id (FK cascade), type (InventoryTransactionType), quantity, quantity_after (snapshot post-transaction), reason (nullable), recorded_by, created_at only
+
+### expense_categories
+- id, name (unique), active — not location-scoped (shared business-wide config)
+
+### expenses (financial record, create-only — no update/delete routes)
+- id, location_id (FK restrict), expense_category_id (FK restrict), supplier_id (nullable FK set null)
+- amount (decimal 10,2), description, expense_date, recorded_by
+
+## Enums (Phase 7)
+
+### InventoryTransactionType: received, used, waste, adjustment
+
+## Domain Services (Phase 7)
+
+- `App\Services\InventoryService::recordTransaction()` - row-locks the InventoryItem, computes the signed delta per transaction type (received=+, used/waste=-, adjustment=signed), rejects any transaction that would drive quantity below zero, snapshots `quantity_after` on the immutable transaction row, audit logs the item's quantity change
+
 ## Relationships
 
 **User**

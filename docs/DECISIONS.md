@@ -214,6 +214,26 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Http/Controllers/ReportController.php
 
+## Phase 7 Decisions
+
+### Decision 31: Inventory quantity is a derived running total, not computed from the transaction ledger on read
+**Decision**: `inventory_items.current_quantity` is a stored, mutable column updated transactionally alongside each `inventory_transactions` row (which also stores a `quantity_after` snapshot), rather than always summing the ledger on every read.
+**Reason**: Matches the pattern used for `orders.balance_due`/`amount_paid` (Phase 4) — fast reads for the common case (checking stock level), while the immutable ledger remains available for audit/history. `quantity_after` on each transaction lets the history view show the running balance without recomputation, and lets a future audit re-derive the current value from the ledger if the two ever need to be reconciled.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/InventoryService.php, app/Models/InventoryItem.php
+
+### Decision 32: Suppliers can be shared across all locations (nullable location_id)
+**Decision**: `suppliers.location_id` is nullable; null means the supplier serves all locations rather than being tied to one.
+**Reason**: A single business commonly buys detergent/supplies from the same vendor across every location. Forcing a location per supplier would require duplicate supplier records for a multi-location business.
+**Date**: 2026-07-29
+**Affected Module**: database/migrations/..._create_suppliers_table.php
+
+### Decision 33: Expenses are create-only — no update or delete routes
+**Decision**: Following the same immutability principle already applied to Payments/Refunds (Phase 4), `Expense` records can be created but never edited or deleted through the UI.
+**Reason**: An expense is a financial record; silently editing a past expense after it may have been included in a report breaks the audit trail. A data-entry mistake should be corrected with a new adjusting entry, not a silent edit — consistent with "never permanently delete financial records."
+**Date**: 2026-07-29
+**Affected Module**: app/Policies/ExpensePolicy.php (update/delete always return false), routes/web.php
+
 ## Pending Decisions
 
 (None at this phase)
