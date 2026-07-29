@@ -83,3 +83,8 @@
 - `GET delivery-zones` - DeliveryZoneController@index - location-scoped
 - `GET/POST delivery-zones/create` - DeliveryZoneController@create/store - Owner/Manager only
 - `GET driver/deliveries` - DriverController@index - driver's own active deliveries, mobile-friendly cards
+
+## Phase 6 Routes (Implemented)
+
+- `GET reports` - ReportController@index - Owner/Manager/Accountant only; date-range filtered; cross-location "Sales by Location" only when `scopedLocationId()` is null
+- `GET dashboard` (existing route, enhanced) - now shows orders today, revenue today, amount due, orders-by-status, ready-for-pickup count, overdue orders — all location-scoped via `scopedLocationId()`

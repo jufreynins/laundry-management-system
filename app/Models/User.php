@@ -64,4 +64,15 @@ class User extends Authenticatable
         }
         return $this->location_id === $location->id;
     }
+
+    /**
+     * The location_id to scope list/report queries by: null means unrestricted
+     * (Owner, always; any other role only if explicitly assigned no single location).
+     * Managers are NOT automatically unrestricted — only Owner bypasses location
+     * scoping by role alone, matching canAccessLocation()'s per-record check.
+     */
+    public function scopedLocationId(): ?int
+    {
+        return $this->role === UserRole::OWNER ? null : $this->location_id;
+    }
 }

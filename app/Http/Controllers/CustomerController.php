@@ -20,8 +20,8 @@ class CustomerController extends Controller
         $user = $request->user();
         $query = Customer::query()->with('location');
 
-        if (!$user->isAdmin()) {
-            $query->where('location_id', $user->location_id);
+        if ($locationId = $user->scopedLocationId()) {
+            $query->where('location_id', $locationId);
         }
 
         if ($search = $request->string('q')->trim()->value()) {
@@ -37,9 +37,10 @@ class CustomerController extends Controller
     {
         $this->authorize('create', Customer::class);
 
-        $locations = $request->user()->isAdmin()
+        $scopedLocationId = $request->user()->scopedLocationId();
+        $locations = $scopedLocationId === null
             ? \App\Models\Location::where('active', true)->orderBy('name')->get()
-            : \App\Models\Location::where('id', $request->user()->location_id)->get();
+            : \App\Models\Location::where('id', $scopedLocationId)->get();
 
         return view('customers.create', ['locations' => $locations]);
     }
@@ -49,8 +50,8 @@ class CustomerController extends Controller
         $data = $request->validated();
 
         $user = $request->user();
-        if (!$user->isAdmin()) {
-            $data['location_id'] = $user->location_id;
+        if ($scopedLocationId = $user->scopedLocationId()) {
+            $data['location_id'] = $scopedLocationId;
         }
 
         $duplicates = Customer::findPossibleDuplicates($data['location_id'], $data['name'], $data['phone']);
@@ -71,7 +72,9 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
-        return view('customers.show', ['customer' => $customer]);
+        $orders = $customer->orders()->latest('intake_at')->paginate(10);
+
+        return view('customers.show', ['customer' => $customer, 'orders' => $orders]);
     }
 
     public function edit(Customer $customer): View

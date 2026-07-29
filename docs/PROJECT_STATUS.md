@@ -2,6 +2,7 @@
 
 ## Current Phase
 
+**Phase 6: Dashboard and Reports** (COMPLETED — also fixed a cross-location data-scoping bug affecting Phases 1-5, see DECISIONS.md #29)
 **Phase 5: Pickup and Delivery** (COMPLETED)
 **Phase 4: Payments and Receipts** (COMPLETED)
 **Phase 3: Production Workflow** (COMPLETED)

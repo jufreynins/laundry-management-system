@@ -14,8 +14,8 @@ class AuditLogController extends Controller
 
         $query = AuditLog::with(['user', 'location'])->latest('created_at');
 
-        if (!$user->isAdmin()) {
-            $query->where('location_id', $user->location_id);
+        if ($locationId = $user->scopedLocationId()) {
+            $query->where('location_id', $locationId);
         }
 
         $logs = $query->paginate(25);

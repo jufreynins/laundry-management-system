@@ -230,6 +230,16 @@ Keys:
 - `App\Services\DeliveryService::updateStatus()` - rejects changes once a delivery is in a terminal state; requires non-empty proof-of-delivery notes to mark `completed`
 - `App\Services\DeliveryService::assignDriver()` - audit logged
 
+## Phase 6 Additions
+
+No new tables. `App\Services\ReportService` provides read-only aggregate queries:
+- `ordersToday`, `revenueToday`, `totalAmountDue`, `ordersByStatus`, `readyForPickupCount`, `overdueOrders` (dashboard widgets)
+- `salesByService`, `salesByLocation`, `taxSummary`, `paymentSummaryByMethod` (reports page, date-range filtered)
+
+`Customer::orders()` HasMany relationship added for the customer order-history view.
+
+`User::scopedLocationId()` — see DECISIONS.md #29. The canonical way to scope any list/report query by location; returns null only for `OWNER`.
+
 ## Relationships
 
 **User**

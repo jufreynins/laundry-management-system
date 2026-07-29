@@ -31,4 +31,27 @@
     </div>
     @endcan
 </div>
+
+<div class="card mt-3" style="max-width: 640px;">
+    <div class="card-header">Order History</div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Total</th><th>Balance Due</th></tr></thead>
+            <tbody>
+                @forelse ($orders as $order)
+                <tr>
+                    <td><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a></td>
+                    <td>{{ $order->intake_at->format('m/d/Y') }}</td>
+                    <td><span class="badge bg-info status-badge">{{ $order->status->label() }}</span></td>
+                    <td>${{ number_format($order->total, 2) }}</td>
+                    <td>${{ number_format($order->balance_due, 2) }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="5" class="text-center text-muted py-3">No orders yet.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="mt-3" style="max-width: 640px;">{{ $orders->links() }}</div>
 @endsection

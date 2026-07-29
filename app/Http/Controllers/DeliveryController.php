@@ -27,8 +27,10 @@ class DeliveryController extends Controller
         $user = $request->user();
         $query = Delivery::query()->with(['order.customer', 'driver'])->latest('scheduled_at');
 
-        if (!$user->isAdmin()) {
-            $query->where('location_id', $user->location_id);
+        if ($user->hasRole(\App\Enums\UserRole::DRIVER)) {
+            $query->where('driver_id', $user->id);
+        } elseif ($locationId = $user->scopedLocationId()) {
+            $query->where('location_id', $locationId);
         }
 
         $deliveries = $query->paginate(20);

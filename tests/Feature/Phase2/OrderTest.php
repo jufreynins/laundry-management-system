@@ -23,6 +23,21 @@ class OrderTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
+    public function test_manager_order_list_excludes_other_locations(): void
+    {
+        $location1 = Location::factory()->create();
+        $location2 = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location1->id]);
+        $ownOrder = Order::factory()->create(['location_id' => $location1->id]);
+        $otherOrder = Order::factory()->create(['location_id' => $location2->id]);
+
+        $response = $this->actingAs($manager)->get(route('orders.index'));
+
+        $response->assertOk();
+        $response->assertSee($ownOrder->order_number);
+        $response->assertDontSee($otherOrder->order_number);
+    }
+
     public function test_cashier_can_create_order_via_http(): void
     {
         $location = Location::factory()->create();

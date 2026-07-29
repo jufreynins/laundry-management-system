@@ -24,6 +24,21 @@ class CustomerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_manager_customer_list_excludes_other_locations(): void
+    {
+        $location1 = Location::factory()->create();
+        $location2 = Location::factory()->create();
+        $manager = User::factory()->create(['role' => UserRole::MANAGER, 'location_id' => $location1->id]);
+        $ownCustomer = Customer::factory()->create(['location_id' => $location1->id, 'name' => 'Own Location Customer']);
+        $otherCustomer = Customer::factory()->create(['location_id' => $location2->id, 'name' => 'Other Location Customer']);
+
+        $response = $this->actingAs($manager)->get(route('customers.index'));
+
+        $response->assertOk();
+        $response->assertSee($ownCustomer->customer_number);
+        $response->assertDontSee($otherCustomer->customer_number);
+    }
+
     public function test_guest_cannot_view_customer_list(): void
     {
         $response = $this->get(route('customers.index'));

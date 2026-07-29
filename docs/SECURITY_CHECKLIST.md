@@ -27,7 +27,7 @@
 - [ ] Authorization middleware on protected routes
 - [ ] Server-side authorization on every action
 - [ ] Least privilege principle implemented
-- [ ] Location-based access control
+- [x] Location-based access control (fixed Phase 6: `scopedLocationId()` replaces incorrect `isAdmin()` scoping that let Managers see cross-location data in list views — see DECISIONS.md #29)
 
 ### Session Security
 - [ ] HTTPS forced in production (config)

@@ -198,6 +198,22 @@
 **Date**: 2026-07-29
 **Affected Module**: database/migrations/..._create_deliveries_table.php
 
+## Phase 6 Decisions
+
+### Decision 29: SECURITY FIX — `isAdmin()` was wrong for location data-scoping; introduced `scopedLocationId()`
+**Decision**: Replaced `if (!$user->isAdmin()) { $query->where('location_id', $user->location_id); }` (and its create/store equivalents) across CustomerController, OrderController, DeliveryController, DeliveryZoneController, PaymentController, AuditLogController, DashboardController, and ReportController with `$user->scopedLocationId()`, a new `User` model method that returns `null` only for the `OWNER` role (matching `canAccessLocation()`'s existing per-record check) and the user's own `location_id` otherwise.
+**Reason**: `UserRole::isAdmin()` returns true for both `OWNER` and `MANAGER` — correct for *permission* checks (who can create users, edit locations) but wrong for *data scoping*. Because every list/index endpoint since Phase 1 used `isAdmin()` to decide whether to filter by location, a Manager (who is location-scoped per `canAccessLocation()`) could see every location's customers, orders, deliveries, payments, audit logs, and dashboard/report totals in list views — even though opening an individual record from another location correctly returned 403. This was a real cross-location data leak for the Manager role, caught while writing Phase 6's "Sales by Location" test (a Manager saw other locations' aggregate sales).
+**Date**: 2026-07-29
+**Affected Module**: app/Models/User.php (new `scopedLocationId()`), and every controller listed above
+**How to apply**: Any *new* list/index/report query scoped by location must use `$user->scopedLocationId()`, never `$user->isAdmin()`. `isAdmin()` remains correct for CRUD permission checks (can this role create/edit X) — it was never wrong there.
+**Verification**: Added regression tests (`test_manager_customer_list_excludes_other_locations`, `test_manager_order_list_excludes_other_locations`, `test_sales_by_location_only_shown_to_admin`) asserting a Manager's list views never contain another location's records.
+
+### Decision 30: Cross-location aggregate reports ("Sales by Location") gated by `scopedLocationId() === null`, not a role check
+**Decision**: The one report that intentionally spans all locations (`salesByLocation`) is shown only when `scopedLocationId()` returns null — i.e. Owner always, or any other role explicitly configured with no single assigned location (e.g. a business-wide Accountant).
+**Reason**: Consistent with Decision 29 — "can see everything" is a property of *not being tied to one location*, not of a specific role name.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Controllers/ReportController.php
+
 ## Pending Decisions
 
 (None at this phase)

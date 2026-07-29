@@ -15,6 +15,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +72,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/delivery-zones', [DeliveryZoneController::class, 'store'])->name('delivery-zones.store');
 
     Route::get('/driver/deliveries', [DriverController::class, 'index'])->name('driver.index');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 

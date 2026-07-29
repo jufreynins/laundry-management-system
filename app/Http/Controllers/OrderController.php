@@ -34,8 +34,8 @@ class OrderController extends Controller
         $user = $request->user();
         $query = Order::query()->with(['customer', 'location'])->latest('intake_at');
 
-        if (!$user->isAdmin()) {
-            $query->where('location_id', $user->location_id);
+        if ($locationId = $user->scopedLocationId()) {
+            $query->where('location_id', $locationId);
         }
 
         if ($status = $request->string('status')->trim()->value()) {
@@ -52,11 +52,12 @@ class OrderController extends Controller
         $this->authorize('create', Order::class);
 
         $user = $request->user();
-        $locations = $user->isAdmin()
+        $scopedLocationId = $user->scopedLocationId();
+        $locations = $scopedLocationId === null
             ? Location::where('active', true)->orderBy('name')->get()
-            : Location::where('id', $user->location_id)->get();
+            : Location::where('id', $scopedLocationId)->get();
 
-        $locationId = $user->location_id ?? $locations->first()?->id;
+        $locationId = $scopedLocationId ?? $locations->first()?->id;
 
         $customers = Customer::where('active', true)
             ->when($locationId, fn ($q) => $q->where('location_id', $locationId))
@@ -73,8 +74,8 @@ class OrderController extends Controller
         $data = $request->validated();
 
         $user = $request->user();
-        if (!$user->isAdmin()) {
-            $data['location_id'] = $user->location_id;
+        if ($scopedLocationId = $user->scopedLocationId()) {
+            $data['location_id'] = $scopedLocationId;
         }
 
         try {

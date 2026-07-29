@@ -18,8 +18,8 @@ class DeliveryZoneController extends Controller
         $user = $request->user();
         $query = DeliveryZone::query()->with('location');
 
-        if (!$user->isAdmin()) {
-            $query->where('location_id', $user->location_id);
+        if ($locationId = $user->scopedLocationId()) {
+            $query->where('location_id', $locationId);
         }
 
         return view('delivery-zones.index', ['zones' => $query->orderBy('name')->get()]);
@@ -29,17 +29,23 @@ class DeliveryZoneController extends Controller
     {
         $this->authorize('create', DeliveryZone::class);
 
-        $user = $request->user();
-        $locations = $user->isAdmin()
+        $scopedLocationId = $request->user()->scopedLocationId();
+        $locations = $scopedLocationId === null
             ? Location::where('active', true)->orderBy('name')->get()
-            : Location::where('id', $user->location_id)->get();
+            : Location::where('id', $scopedLocationId)->get();
 
         return view('delivery-zones.create', ['locations' => $locations]);
     }
 
     public function store(StoreDeliveryZoneRequest $request): RedirectResponse
     {
-        DeliveryZone::create($request->validated());
+        $data = $request->validated();
+
+        if ($scopedLocationId = $request->user()->scopedLocationId()) {
+            $data['location_id'] = $scopedLocationId;
+        }
+
+        DeliveryZone::create($data);
 
         return redirect()->route('delivery-zones.index')->with('status', 'Delivery zone created successfully.');
     }

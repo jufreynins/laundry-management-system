@@ -26,8 +26,8 @@ class PaymentController extends Controller
         $user = $request->user();
         $query = Payment::query()->with(['order', 'recordedBy'])->latest('created_at');
 
-        if (!$user->isAdmin()) {
-            $query->where('location_id', $user->location_id);
+        if ($locationId = $user->scopedLocationId()) {
+            $query->where('location_id', $locationId);
         }
 
         $payments = $query->paginate(20);
