@@ -72,6 +72,34 @@
 **Affected Module**: Payment, refund, order models
 **Trade-off**: Requires migration to soft_deletes for historical accuracy. Necessary for compliance.
 
+## Phase 0 Backfill + Phase 1 Decisions
+
+### Decision 11: Bootstrap 5 via npm instead of Tailwind
+**Decision**: Replaced the default Laravel Tailwind scaffold with Bootstrap 5 (npm package, precompiled CSS import) and a hand-rolled Gentelella-style sidebar layout.
+**Reason**: Master spec requires Bootstrap 5 + customized Gentelella. Importing `bootstrap/dist/css/bootstrap.min.css` avoids needing the `sass` compiler toolchain for the SCSS source, keeping the build simple.
+**Date**: 2026-07-29
+**Affected Module**: resources/css/app.css, resources/js/app.js, vite.config.js, layouts.app
+**Trade-off**: Using precompiled CSS means Bootstrap's Sass variables can't be customized at build time; theme colors are overridden via CSS custom properties in app.css instead.
+
+### Decision 12: CSP style-src 'unsafe-inline'
+**Decision**: SecurityHeaders middleware allows `'unsafe-inline'` for `style-src` only (not `script-src`).
+**Reason**: Bootstrap's default components and a few inline `style="max-width:..."` attributes in Blade views rely on inline styles. Locking down `script-src` to `'self'` (no unsafe-inline/eval) is the higher-value protection against XSS.
+**Date**: 2026-07-29
+**Affected Module**: app/Http/Middleware/SecurityHeaders.php
+**Trade-off**: Slightly weaker CSP than a strict nonce-based policy. Acceptable for MVP; revisit with nonces if a stricter policy is required later.
+
+### Decision 13: Customer/Service auto-generated identifiers via forceFill
+**Decision**: `customer_number` is deliberately excluded from `$fillable` and set via `forceFill()->saveQuietly()` in a model `created` event, keyed off the auto-increment `id`.
+**Reason**: Prevents mass-assignment tampering (a user could otherwise submit `customer_number` in a form) while still using the database's atomic auto-increment as the safe sequence source, per the "never generate identifiers by counting existing records" rule.
+**Date**: 2026-07-29
+**Affected Module**: app/Models/Customer.php (same pattern will be reused for Order and Payment numbers in Phase 2/4)
+
+### Decision 14: Service pricing is global with per-location override table
+**Decision**: `services` table holds one global catalog row per service; `service_prices` is a separate pivot table for location-specific price overrides (nullable, opt-in per location).
+**Reason**: Avoids duplicating full service rows per location just to change a price. `Service::priceForLocation()` resolves override-or-base price.
+**Date**: 2026-07-29
+**Affected Module**: app/Models/Service.php, app/Models/ServicePrice.php
+
 ## Pending Decisions
 
 (None at this phase)

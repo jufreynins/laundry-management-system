@@ -41,3 +41,11 @@
 
 #### All Authenticated
 - `GET /audit-logs` - View recent audit logs (own location only for non-managers)
+
+## Phase 1 Routes (Implemented)
+
+- `resource customers` (except destroy) - CustomerController - location-scoped, accountant read-only
+- `resource services` (except destroy) - ServiceController - view: any auth user; create/update: admin only
+- `resource admin/users` (except destroy) - Admin\UserController - owner/manager only
+- `resource admin/locations` (except destroy) - Admin\LocationController - owner/manager view; owner-scoped create/update
+- `GET/PATCH admin/settings` - Admin\BusinessSettingsController - admin only

@@ -1,9 +1,59 @@
-@import 'tailwindcss';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+:root {
+    --lms-sidebar-bg: #2a3f54;
+    --lms-sidebar-active: #1a2836;
+    --lms-accent: #2c7be5;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+body {
+    background-color: #f7f8fa;
+}
+
+.lms-sidebar {
+    background-color: var(--lms-sidebar-bg);
+    min-height: 100vh;
+    width: 230px;
+}
+
+.lms-sidebar .nav-link {
+    color: #cfd8e3;
+    padding: 0.65rem 1.25rem;
+    border-left: 3px solid transparent;
+}
+
+.lms-sidebar .nav-link.active,
+.lms-sidebar .nav-link:hover {
+    background-color: var(--lms-sidebar-active);
+    color: #fff;
+    border-left-color: var(--lms-accent);
+}
+
+.lms-sidebar .brand {
+    color: #fff;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.lms-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.lms-topbar {
+    background-color: #fff;
+    border-bottom: 1px solid #e5e8ee;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.3em 0.6em;
+}
+
+@media (max-width: 767.98px) {
+    .lms-sidebar {
+        width: 100%;
+        min-height: auto;
+    }
 }

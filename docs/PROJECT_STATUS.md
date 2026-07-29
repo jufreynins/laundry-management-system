@@ -2,7 +2,8 @@
 
 ## Current Phase
 
-**Phase 0: Project Foundation** (COMPLETED)
+**Phase 1: Customers and Services** (COMPLETED)
+**Phase 0: Project Foundation** (COMPLETED, backfilled with auth/layout/settings)
 
 ## Completed Modules
 

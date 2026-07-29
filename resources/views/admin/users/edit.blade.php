@@ -1,0 +1,46 @@
+@extends('layouts.app')
+
+@section('title', 'Edit User')
+@section('header', 'Edit User')
+
+@section('content')
+<div class="card" style="max-width: 640px;">
+    <div class="card-body">
+        <form method="POST" action="{{ route('admin.users.update', $user) }}">
+            @csrf
+            @method('PATCH')
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select" required>
+                    @foreach (\App\Enums\UserRole::cases() as $role)
+                        <option value="{{ $role->value }}" {{ old('role', $user->role->value) === $role->value ? 'selected' : '' }}>{{ $role->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <select name="location_id" class="form-select">
+                    <option value="">All Locations (Owner only)</option>
+                    @foreach ($locations as $location)
+                        <option value="{{ $location->id }}" {{ old('location_id', $user->location_id) == $location->id ? 'selected' : '' }}>{{ $location->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="active" value="1" class="form-check-input" id="active" {{ $user->active ? 'checked' : '' }}>
+                <label class="form-check-label" for="active">Active</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-link">Cancel</a>
+        </form>
+    </div>
+</div>
+@endsection

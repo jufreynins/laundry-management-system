@@ -99,6 +99,31 @@ Keys:
 - CANCELLED
 - ON_HOLD
 
+## Phase 1 Tables
+
+### customers
+- id, customer_number (CUS-000001, auto via id, not fillable)
+- location_id (FK, restrict delete)
+- name, email (nullable), phone
+- address, city, state, zip (nullable)
+- operational_consent, marketing_consent (booleans)
+- notes, active
+- Indexes: (location_id, name), (location_id, phone)
+
+### services
+- id, name, category (enum string), pricing_type (enum string)
+- base_price, minimum_charge (decimal 10,2)
+- taxable, rush_eligible, estimated_duration_minutes, active
+
+### service_prices (location price overrides)
+- id, service_id (FK), location_id (FK), price (decimal 10,2), active
+- unique(service_id, location_id)
+
+## Enums (Phase 1)
+
+### PricingType: per_pound, per_item, flat_fee, hourly, custom_quote
+### ServiceCategory: wash_fold, wash_press, dry_cleaning, alterations, shoe_cleaning, delivery, rush, add_on
+
 ## Relationships
 
 **User**
