@@ -2,6 +2,7 @@
 
 ## Current Phase
 
+**Phase 8: Public Tracking and Notifications** (COMPLETED)
 **Phase 7: Inventory and Expenses** (COMPLETED)
 **Phase 6: Dashboard and Reports** (COMPLETED — also fixed a cross-location data-scoping bug affecting Phases 1-5, see DECISIONS.md #29)
 **Phase 5: Pickup and Delivery** (COMPLETED)

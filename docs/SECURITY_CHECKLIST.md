@@ -96,12 +96,12 @@
 
 ## Phase 1+ Controls
 
-- [ ] Customer data privacy controls
-- [ ] Order financial integrity tests
-- [ ] Payment webhook signature verification
-- [ ] PCI compliance for payment handling
-- [ ] Secure delivery tracking tokens
-- [ ] Rate limiting on public tracking
+- [x] Customer data privacy controls (notification preferences, consent fields)
+- [x] Order financial integrity tests (Phase 2/4)
+- [ ] Payment webhook signature verification (Phase 9)
+- [ ] PCI compliance for payment handling (Phase 9)
+- [x] Secure delivery tracking tokens (Phase 8: 40-char random token, independent of sequential order_number)
+- [x] Rate limiting on public tracking (Phase 8: throttle:20,1 on /track/{token})
 
 ## Current Status
 

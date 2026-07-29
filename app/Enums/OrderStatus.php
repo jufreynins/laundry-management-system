@@ -41,4 +41,23 @@ enum OrderStatus: string
     {
         return in_array($this, [self::COMPLETED, self::CANCELLED]);
     }
+
+    /**
+     * Simplified status shown to customers on the public tracking page.
+     * Internal production steps (sorting, washing, drying, etc.) are
+     * intentionally collapsed into "In Progress" — customers don't need
+     * (and staff shouldn't expose) internal workflow granularity.
+     */
+    public function customerLabel(): string
+    {
+        return match($this) {
+            self::DRAFT, self::CHECKED_IN, self::TAGGED, self::SORTING,
+            self::WASHING, self::DRYING, self::FINISHING, self::QUALITY_CHECK => 'In Progress',
+            self::READY_FOR_PICKUP => 'Ready for Pickup',
+            self::OUT_FOR_DELIVERY => 'Out for Delivery',
+            self::COMPLETED => 'Completed',
+            self::CANCELLED => 'Cancelled',
+            self::ON_HOLD => 'On Hold',
+        };
+    }
 }

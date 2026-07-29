@@ -23,6 +23,8 @@ class UpdateCustomerRequest extends FormRequest
             'zip' => ['nullable', 'string', 'max:10'],
             'operational_consent' => ['boolean'],
             'marketing_consent' => ['boolean'],
+            'notify_email' => ['boolean'],
+            'notify_sms' => ['boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'active' => ['boolean'],
         ];

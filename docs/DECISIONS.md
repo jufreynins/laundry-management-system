@@ -234,6 +234,33 @@
 **Date**: 2026-07-29
 **Affected Module**: app/Policies/ExpensePolicy.php (update/delete always return false), routes/web.php
 
+## Phase 8 Decisions
+
+### Decision 34: Tracking token is a random string, not derivable from order_number or id
+**Decision**: `orders.tracking_token` is 40 random characters (`Str::random(40)`), generated once in the model's `created` event, completely independent of `order_number` (LND-YYYY-NNNNNN) or the primary key.
+**Reason**: `order_number` is sequential and guessable (LND-2026-000042 implies 000041, 000043 exist) — using it as the public lookup key would let anyone enumerate other customers' orders by incrementing the number. A long random token makes guessing infeasible, and is combined with rate limiting on the route as defense in depth.
+**Date**: 2026-07-29
+**Affected Module**: app/Models/Order.php, migration adding tracking_token
+
+### Decision 35: SMS provider abstraction ships with a logging-only default, not a real SMS vendor
+**Decision**: `App\Services\Sms\SmsProvider` is an interface; the only implementation is `LogSmsProvider`, which logs a masked phone number and message instead of sending anything. It's bound in `AppServiceProvider::register()`.
+**Reason**: No SMS vendor credentials (Twilio, etc.) exist yet, and adding one is an external-service integration decision the business needs to make (cost, vendor choice) — not something to guess at. The abstraction means swapping in a real provider later is a one-line binding change with no changes to `OrderStatusUpdated` or `SmsChannel`.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/Sms/, app/Providers/AppServiceProvider.php
+**How to apply**: When a real SMS vendor is chosen, implement `SmsProvider::send()` against that vendor's API and change the `bind()` call — nothing else needs to change.
+
+### Decision 36: Customer notifications sent only for customer-relevant status transitions
+**Decision**: `OrderStatusService::transition()` only dispatches `OrderStatusUpdated` when the new status is `ready_for_pickup`, `out_for_delivery`, or `completed` — not for every internal step (tagged, sorting, washing, drying, finishing, quality_check).
+**Reason**: A customer doesn't need (and would find it spammy) to be notified that their laundry moved from "sorting" to "washing." They care about pickup-readiness, delivery, and completion.
+**Date**: 2026-07-29
+**Affected Module**: app/Services/OrderStatusService.php
+
+### Decision 37: Notification preferences are per-channel booleans on Customer, reusing existing consent fields for the "should we contact them at all" gate
+**Decision**: `notify_email` (default true) and `notify_sms` (default false) control which channels `OrderStatusUpdated::via()` returns. These are separate from `operational_consent`/`marketing_consent` (Phase 1) — the notify_* flags are the channel preference, the consent flags remain the legal/marketing distinction.
+**Reason**: SMS costs money per message and requires clearer opt-in than email, hence the differing defaults. Keeping these separate from marketing consent avoids conflating "can we email you a receipt" with "can we send you promotional texts."
+**Date**: 2026-07-29
+**Affected Module**: app/Models/Customer.php, migration adding notify_email/notify_sms
+
 ## Pending Decisions
 
 (None at this phase)

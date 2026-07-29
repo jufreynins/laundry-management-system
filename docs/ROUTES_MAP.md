@@ -96,3 +96,7 @@
 - `POST inventory/{inventoryItem}/transactions` - InventoryItemController@recordTransaction - Owner/Manager/Laundry Staff, location-scoped
 - `GET/POST expenses`, `GET expenses/create` - ExpenseController - view: Owner/Manager/Accountant; create: Owner/Manager (financial record, create-only, never updated/deleted)
 - `GET/POST expense-categories` - ExpenseCategoryController - view: Owner/Manager; create: Owner only
+
+## Phase 8 Routes (Implemented)
+
+- `GET /track/{token}` - TrackingController@show - PUBLIC, unauthenticated, rate limited (throttle:20,1). Exposes only order number, customer-safe status, promised date, delivery type/status, balance due, store name/phone. Never customer PII, internal notes, photos, or DB IDs.

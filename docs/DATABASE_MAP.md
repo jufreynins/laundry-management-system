@@ -269,6 +269,22 @@ No new tables. `App\Services\ReportService` provides read-only aggregate queries
 
 - `App\Services\InventoryService::recordTransaction()` - row-locks the InventoryItem, computes the signed delta per transaction type (received=+, used/waste=-, adjustment=signed), rejects any transaction that would drive quantity below zero, snapshots `quantity_after` on the immutable transaction row, audit logs the item's quantity change
 
+## Phase 8 Additions
+
+### orders (added column)
+- tracking_token (64 char random, unique, nullable — generated in the `created` model event alongside order_number)
+
+### customers (added columns)
+- notify_email (boolean, default true)
+- notify_sms (boolean, default false — off by default since SMS costs money and needs explicit opt-in)
+
+## Domain Services (Phase 8)
+
+- `App\Services\Sms\SmsProvider` interface + `LogSmsProvider` (default binding, logs instead of sending — swap the binding in AppServiceProvider for a real provider like Twilio without touching calling code)
+- `App\Notifications\OrderStatusUpdated` (ShouldQueue) — sent from `OrderStatusService::transition()` only for customer-relevant statuses (ready_for_pickup, out_for_delivery, completed), never for internal production steps
+- `App\Notifications\Channels\SmsChannel` — custom notification channel wrapping `SmsProvider`
+- `OrderStatus::customerLabel()` — collapses internal workflow steps into "In Progress" for anything customer-facing (public tracking page, notifications)
+
 ## Relationships
 
 **User**

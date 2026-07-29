@@ -43,6 +43,17 @@
                 <input type="checkbox" name="marketing_consent" value="1" class="form-check-input" id="marketing_consent" {{ $customer->marketing_consent ? 'checked' : '' }}>
                 <label class="form-check-label" for="marketing_consent">Customer consents to marketing communications</label>
             </div>
+            <div class="mb-3">
+                <label class="form-label d-block">Order Update Notifications</label>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" name="notify_email" value="1" class="form-check-input" id="notify_email" {{ $customer->notify_email ? 'checked' : '' }}>
+                    <label class="form-check-label" for="notify_email">Email</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" name="notify_sms" value="1" class="form-check-input" id="notify_sms" {{ $customer->notify_sms ? 'checked' : '' }}>
+                    <label class="form-check-label" for="notify_sms">SMS</label>
+                </div>
+            </div>
             <div class="mb-3 form-check">
                 <input type="checkbox" name="active" value="1" class="form-check-input" id="active" {{ $customer->active ? 'checked' : '' }}>
                 <label class="form-check-label" for="active">Active</label>

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
@@ -68,6 +69,7 @@ class Order extends Model
 
             $order->forceFill([
                 'order_number' => sprintf('LND-%d-%06d', $year, $sequence),
+                'tracking_token' => Str::random(40),
             ])->saveQuietly();
         });
     }

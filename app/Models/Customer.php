@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 
 class Customer extends Model
 {
     /** @use HasFactory<\Database\Factories\CustomerFactory> */
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'location_id',
@@ -23,6 +24,8 @@ class Customer extends Model
         'zip',
         'operational_consent',
         'marketing_consent',
+        'notify_email',
+        'notify_sms',
         'notes',
         'active',
     ];
@@ -30,6 +33,8 @@ class Customer extends Model
     protected $casts = [
         'operational_consent' => 'boolean',
         'marketing_consent' => 'boolean',
+        'notify_email' => 'boolean',
+        'notify_sms' => 'boolean',
         'active' => 'boolean',
     ];
 
@@ -45,6 +50,11 @@ class Customer extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function routeNotificationForSms(): string
+    {
+        return $this->phone;
     }
 
     public function orders(): HasMany

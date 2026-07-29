@@ -7,10 +7,22 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\User;
+use App\Notifications\OrderStatusUpdated;
 use Illuminate\Support\Facades\DB;
 
 class OrderStatusService
 {
+    /**
+     * Statuses that warrant a customer notification. Internal-only steps
+     * (tagged, sorting, washing, etc.) are deliberately excluded to avoid
+     * spamming the customer with production-floor detail.
+     */
+    private const NOTIFIABLE_STATUSES = [
+        OrderStatus::READY_FOR_PICKUP,
+        OrderStatus::OUT_FOR_DELIVERY,
+        OrderStatus::COMPLETED,
+    ];
+
     public function transition(Order $order, OrderStatus $to, User $actor, ?string $reason = null, bool $override = false): Order
     {
         $from = $order->status;
@@ -47,7 +59,13 @@ class OrderStatusService
                 $order->location_id,
             );
 
-            return $order->fresh();
+            $updated = $order->fresh();
+
+            if (in_array($to, self::NOTIFIABLE_STATUSES, true)) {
+                $updated->customer->notify(new OrderStatusUpdated($updated));
+            }
+
+            return $updated;
         });
     }
 

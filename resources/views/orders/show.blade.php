@@ -26,6 +26,8 @@
                     <dd class="col-sm-8">{{ $order->weight_lbs ?? '-' }} lbs / {{ $order->item_count ?? '-' }} items / {{ $order->bag_count ?? '-' }} bags</dd>
                     <dt class="col-sm-4">Assigned To</dt>
                     <dd class="col-sm-8">{{ $order->assignedUser?->name ?? 'Unassigned' }}</dd>
+                    <dt class="col-sm-4">Customer Tracking Link</dt>
+                    <dd class="col-sm-8"><a href="{{ route('public.tracking.show', $order->tracking_token) }}" target="_blank">{{ route('public.tracking.show', $order->tracking_token) }}</a></dd>
                 </dl>
             </div>
         </div>
