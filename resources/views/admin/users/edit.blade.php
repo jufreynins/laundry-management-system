@@ -9,18 +9,18 @@
         <form method="POST" action="{{ route('admin.users.update', $user) }}">
             @csrf
             @method('PATCH')
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Name</label>
                 <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Email</label>
                 <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
             </div>
             @php $isOwner = auth()->user()->role === \App\Enums\UserRole::OWNER; @endphp
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Role</label>
-                <select name="role" class="form-select" required>
+                <select name="role" class="form-control" required>
                     @foreach (\App\Enums\UserRole::cases() as $role)
                         @if ($isOwner || $role === $user->role || !in_array($role, [\App\Enums\UserRole::OWNER, \App\Enums\UserRole::MANAGER]))
                         <option value="{{ $role->value }}" {{ old('role', $user->role->value) === $role->value ? 'selected' : '' }}>{{ $role->label() }}</option>
@@ -31,9 +31,9 @@
                 <div class="form-text">Only an Owner can assign Owner or Manager roles.</div>
                 @endif
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Location</label>
-                <select name="location_id" class="form-select">
+                <select name="location_id" class="form-control">
                     @if ($isOwner)
                     <option value="">All Locations (Owner only)</option>
                     @endif
@@ -42,12 +42,16 @@
                     @endforeach
                 </select>
             </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" name="active" value="1" class="form-check-input" id="active" {{ $user->active ? 'checked' : '' }}>
-                <label class="form-check-label" for="active">Active</label>
+            <div class="form-group">
+                <label class="form-check">
+                    <input type="checkbox" name="active" value="1" {{ $user->active ? 'checked' : '' }}>
+                    Active
+                </label>
             </div>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-link">Cancel</a>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ route('admin.users.show', $user) }}" class="btn btn-ghost">Cancel</a>
+            </div>
         </form>
     </div>
 </div>

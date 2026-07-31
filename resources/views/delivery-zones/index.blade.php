@@ -12,18 +12,24 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead><tr><th>Name</th><th>Location</th><th>Fee</th><th>Status</th></tr></thead>
             <tbody>
                 @forelse ($zones as $zone)
                 <tr>
-                    <td>{{ $zone->name }}</td>
+                    <td class="cell-strong">{{ $zone->name }}</td>
                     <td>{{ $zone->location->name }}</td>
                     <td>${{ number_format($zone->fee, 2) }}</td>
-                    <td>{{ $zone->active ? 'Active' : 'Inactive' }}</td>
+                    <td>
+                        @if ($zone->active)
+                            <span class="status status-green">Active</span>
+                        @else
+                            <span class="status status-blue">Inactive</span>
+                        @endif
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="4" class="text-center text-muted py-3">No delivery zones configured.</td></tr>
+                <tr><td colspan="4"><div class="empty-state"><div class="empty-state-title">No delivery zones configured</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>

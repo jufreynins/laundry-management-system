@@ -10,7 +10,7 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -23,16 +23,22 @@
             <tbody>
                 @foreach ($locations as $location)
                 <tr>
-                    <td><a href="{{ route('admin.locations.show', $location) }}">{{ $location->name }}</a></td>
+                    <td class="cell-strong"><a href="{{ route('admin.locations.show', $location) }}">{{ $location->name }}</a></td>
                     <td>{{ $location->address }}, {{ $location->city }}, {{ $location->state }} {{ $location->zip }}</td>
                     <td>{{ $location->phone }}</td>
                     <td>{{ $location->timezone }}</td>
-                    <td>{{ $location->active ? 'Active' : 'Inactive' }}</td>
+                    <td>
+                        @if ($location->active)
+                            <span class="status status-green">Active</span>
+                        @else
+                            <span class="status status-red">Inactive</span>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
+    {{ $locations->links() }}
 </div>
-<div class="mt-3">{{ $locations->links() }}</div>
 @endsection

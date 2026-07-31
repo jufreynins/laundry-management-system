@@ -6,7 +6,7 @@
 @section('content')
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
                     <th>Order</th>
@@ -24,15 +24,22 @@
                     <td>{{ $delivery->type->label() }}</td>
                     <td>{{ $delivery->scheduled_at->format('m/d/Y g:i A') }}</td>
                     <td>{{ $delivery->driver?->name ?? 'Unassigned' }}</td>
-                    <td><span class="badge bg-info status-badge">{{ $delivery->status->label() }}</span></td>
+                    <td>
+                        <span class="status {{ match ($delivery->status) {
+                            \App\Enums\DeliveryStatus::SCHEDULED => 'status-yellow',
+                            \App\Enums\DeliveryStatus::EN_ROUTE => 'status-blue',
+                            \App\Enums\DeliveryStatus::COMPLETED => 'status-green',
+                            \App\Enums\DeliveryStatus::FAILED, \App\Enums\DeliveryStatus::CANCELLED => 'status-red',
+                        } }}">{{ $delivery->status->label() }}</span>
+                    </td>
                     <td>${{ number_format($delivery->fee, 2) }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-3">No deliveries scheduled.</td></tr>
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-state-title">No deliveries scheduled</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $deliveries->links() }}
 </div>
-<div class="mt-3">{{ $deliveries->links() }}</div>
 @endsection

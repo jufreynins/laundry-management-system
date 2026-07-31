@@ -9,9 +9,9 @@
         <form method="POST" action="{{ route('delivery-zones.store') }}">
             @csrf
             @if ($locations->count() > 1)
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Location</label>
-                <select name="location_id" class="form-select" required>
+                <select name="location_id" class="form-control" required>
                     @foreach ($locations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }}</option>
                     @endforeach
@@ -20,20 +20,22 @@
             @else
             <input type="hidden" name="location_id" value="{{ $locations->first()?->id }}">
             @endif
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Zone Name</label>
                 <input type="text" name="name" class="form-control" required>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Description</label>
                 <textarea name="description" class="form-control" rows="2"></textarea>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Delivery Fee ($)</label>
                 <input type="number" step="0.01" min="0" name="fee" class="form-control" value="0.00" required>
             </div>
-            <button type="submit" class="btn btn-primary">Save Zone</button>
-            <a href="{{ route('delivery-zones.index') }}" class="btn btn-link">Cancel</a>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Zone</button>
+                <a href="{{ route('delivery-zones.index') }}" class="btn btn-ghost">Cancel</a>
+            </div>
         </form>
     </div>
 </div>

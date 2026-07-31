@@ -12,7 +12,7 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead><tr><th>Date</th><th>Category</th><th>Supplier</th><th>Description</th><th class="text-end">Amount</th></tr></thead>
             <tbody>
                 @forelse ($expenses as $expense)
@@ -24,11 +24,11 @@
                     <td class="text-end">${{ number_format($expense->amount, 2) }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center text-muted py-3">No expenses recorded.</td></tr>
+                <tr><td colspan="5"><div class="empty-state"><div class="empty-state-title">No expenses recorded</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $expenses->links() }}
 </div>
-<div class="mt-3">{{ $expenses->links() }}</div>
 @endsection

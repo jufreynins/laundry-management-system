@@ -6,23 +6,23 @@
 @section('content')
 <div class="card" style="max-width: 640px;">
     <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-4">Customer Number</dt>
-            <dd class="col-sm-8">{{ $customer->customer_number }}</dd>
-            <dt class="col-sm-4">Phone</dt>
-            <dd class="col-sm-8">{{ $customer->phone }}</dd>
-            <dt class="col-sm-4">Email</dt>
-            <dd class="col-sm-8">{{ $customer->email ?? '-' }}</dd>
-            <dt class="col-sm-4">Address</dt>
-            <dd class="col-sm-8">{{ $customer->address }} {{ $customer->city }} {{ $customer->state }} {{ $customer->zip }}</dd>
-            <dt class="col-sm-4">Location</dt>
-            <dd class="col-sm-8">{{ $customer->location->name }}</dd>
-            <dt class="col-sm-4">Status</dt>
-            <dd class="col-sm-8">{{ $customer->active ? 'Active' : 'Inactive' }}</dd>
-            <dt class="col-sm-4">Marketing Consent</dt>
-            <dd class="col-sm-8">{{ $customer->marketing_consent ? 'Yes' : 'No' }}</dd>
-            <dt class="col-sm-4">Notes</dt>
-            <dd class="col-sm-8">{{ $customer->notes ?? '-' }}</dd>
+        <dl class="detail-list">
+            <dt>Customer Number</dt>
+            <dd>{{ $customer->customer_number }}</dd>
+            <dt>Phone</dt>
+            <dd>{{ $customer->phone }}</dd>
+            <dt>Email</dt>
+            <dd>{{ $customer->email ?? '-' }}</dd>
+            <dt>Address</dt>
+            <dd>{{ $customer->address }} {{ $customer->city }} {{ $customer->state }} {{ $customer->zip }}</dd>
+            <dt>Location</dt>
+            <dd>{{ $customer->location->name }}</dd>
+            <dt>Status</dt>
+            <dd>{{ $customer->active ? 'Active' : 'Inactive' }}</dd>
+            <dt>Marketing Consent</dt>
+            <dd>{{ $customer->marketing_consent ? 'Yes' : 'No' }}</dd>
+            <dt>Notes</dt>
+            <dd>{{ $customer->notes ?? '-' }}</dd>
         </dl>
     </div>
     @can('update', $customer)
@@ -33,25 +33,25 @@
 </div>
 
 <div class="card mt-3" style="max-width: 640px;">
-    <div class="card-header">Order History</div>
+    <div class="card-header"><span class="card-title">Order History</span></div>
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Total</th><th>Balance Due</th></tr></thead>
             <tbody>
                 @forelse ($orders as $order)
                 <tr>
-                    <td><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a></td>
+                    <td class="cell-mono"><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a></td>
                     <td>{{ $order->intake_at->format('m/d/Y') }}</td>
-                    <td><span class="badge bg-info status-badge">{{ $order->status->label() }}</span></td>
+                    <td><span class="status status-blue">{{ $order->status->label() }}</span></td>
                     <td>${{ number_format($order->total, 2) }}</td>
                     <td>${{ number_format($order->balance_due, 2) }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center text-muted py-3">No orders yet.</td></tr>
+                <tr><td colspan="5"><div class="empty-state"><div class="empty-state-title">No orders yet</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $orders->links() }}
 </div>
-<div class="mt-3" style="max-width: 640px;">{{ $orders->links() }}</div>
 @endsection

@@ -12,23 +12,29 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead>
             <tbody>
                 @forelse ($suppliers as $supplier)
                 <tr>
-                    <td>{{ $supplier->name }}</td>
+                    <td class="cell-strong">{{ $supplier->name }}</td>
                     <td>{{ $supplier->contact_name ?? '-' }}</td>
                     <td>{{ $supplier->phone ?? '-' }}</td>
                     <td>{{ $supplier->email ?? '-' }}</td>
-                    <td>{{ $supplier->active ? 'Active' : 'Inactive' }}</td>
+                    <td>
+                        @if ($supplier->active)
+                            <span class="status status-green">Active</span>
+                        @else
+                            <span class="status status-blue">Inactive</span>
+                        @endif
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center text-muted py-3">No suppliers yet.</td></tr>
+                <tr><td colspan="5"><div class="empty-state"><div class="empty-state-title">No suppliers yet</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $suppliers->links() }}
 </div>
-<div class="mt-3">{{ $suppliers->links() }}</div>
 @endsection

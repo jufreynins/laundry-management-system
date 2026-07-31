@@ -10,7 +10,7 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -24,17 +24,23 @@
             <tbody>
                 @foreach ($users as $u)
                 <tr>
-                    <td><a href="{{ route('admin.users.show', $u) }}">{{ $u->name }}</a></td>
+                    <td class="cell-strong"><a href="{{ route('admin.users.show', $u) }}">{{ $u->name }}</a></td>
                     <td>{{ $u->email }}</td>
-                    <td>{{ $u->role->label() }}</td>
+                    <td><span class="status status-blue">{{ $u->role->label() }}</span></td>
                     <td>{{ $u->location?->name ?? 'All Locations' }}</td>
-                    <td>{{ $u->active ? 'Active' : 'Inactive' }}</td>
+                    <td>
+                        @if ($u->active)
+                            <span class="status status-green">Active</span>
+                        @else
+                            <span class="status status-red">Inactive</span>
+                        @endif
+                    </td>
                     <td>{{ $u->last_login_at?->format('m/d/Y g:i A') ?? 'Never' }}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
+    {{ $users->links() }}
 </div>
-<div class="mt-3">{{ $users->links() }}</div>
 @endsection

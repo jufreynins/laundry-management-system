@@ -347,6 +347,13 @@ An independent authorization/IDOR review (Explore agent, read-only) was run agai
 - [x] Dependency audit (`composer audit` and `npm audit` — zero vulnerabilities)
 - [x] Full automated test suite (230 tests passing)
 
+### Decision 49: Full Gentelella conversion of every view (post-MVP UI work)
+**Decision**: Migrated every page from the hand-rolled Bootstrap 5 markup to the Gentelella-scoped design system that was previously only applied to the shell (sidebar/topbar). Added a small utility-class shim, a `.detail-list` component, and `.status`-dot styling to `resources/css/gentelella-scoped.css`; added `resources/views/vendor/pagination/gentelella.blade.php` and switched `Paginator::defaultView()` (was `useBootstrapFive()`) in `AppServiceProvider`; changed the layout's default `content-wrapper-class` from `legacy-content` to `gtl-content` so pages get the Gentelella skin unless a page explicitly opts back into `legacy-content`.
+**Reason**: The `.legacy-content` / `.gtl-shell` CSS `@scope` split (Decision 6/26-area) was designed for incremental adoption; this finishes that migration across all 37 `layouts.app` views rather than leaving most pages on the old Bootstrap look.
+**Trade-off**: Bulk of the per-view conversions were done by parallel background agents following 4 hand-converted reference views (dashboard, customers index/create/show) and a shared component glossary — verify rendering of edge-case pages (mobile driver view, reports, order intake's JS-repeated row form) since agents worked from a written spec rather than live visual QA.
+**Date**: 2026-07-30
+**Affected Module**: All `resources/views/**/*.blade.php` extending `layouts.app`, `resources/css/gentelella-scoped.css`, `app/Providers/AppServiceProvider.php`, new `resources/views/vendor/pagination/gentelella.blade.php`
+
 ## Pending Decisions
 
-(None — MVP scope complete through Phase 10)
+(None — MVP scope complete through Phase 10; Gentelella conversion pending final visual verification, see Decision 49)

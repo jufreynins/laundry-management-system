@@ -4,9 +4,9 @@
 @section('header', 'Orders')
 
 @section('content')
-<div class="d-flex justify-content-between mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
     <form method="GET" class="d-flex gap-2">
-        <select name="status" class="form-select" onchange="this.form.submit()">
+        <select name="status" class="form-control" onchange="this.form.submit()">
             <option value="">All Statuses</option>
             @foreach (\App\Enums\OrderStatus::cases() as $s)
                 <option value="{{ $s->value }}" {{ $status === $s->value ? 'selected' : '' }}>{{ $s->label() }}</option>
@@ -20,7 +20,7 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
                     <th>Order #</th>
@@ -34,19 +34,29 @@
             <tbody>
                 @forelse ($orders as $order)
                 <tr>
-                    <td><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a></td>
+                    <td class="cell-mono"><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a></td>
                     <td>{{ $order->customer->name }}</td>
-                    <td><span class="badge bg-info status-badge">{{ $order->status->label() }}</span></td>
+                    <td>
+                        @php
+                        $statusColor = match ($order->status->value) {
+                            'ready_for_pickup', 'completed' => 'green',
+                            'cancelled' => 'red',
+                            'draft', 'on_hold' => 'yellow',
+                            default => 'blue',
+                        };
+                        @endphp
+                        <span class="status status-{{ $statusColor }}">{{ $order->status->label() }}</span>
+                    </td>
                     <td>{{ $order->promised_at?->format('m/d/Y g:i A') ?? '-' }}</td>
                     <td>${{ number_format($order->total, 2) }}</td>
                     <td>${{ number_format($order->balance_due, 2) }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-3">No orders found.</td></tr>
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-state-title">No orders found</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $orders->links() }}
 </div>
-<div class="mt-3">{{ $orders->links() }}</div>
 @endsection

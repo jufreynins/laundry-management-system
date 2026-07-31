@@ -12,7 +12,7 @@
 
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-sm mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -33,18 +33,18 @@
                     <td>{{ $service->taxable ? 'Yes' : 'No' }}</td>
                     <td>
                         @if ($service->active)
-                            <span class="badge bg-success status-badge">Active</span>
+                            <span class="status status-green">Active</span>
                         @else
-                            <span class="badge bg-secondary status-badge">Inactive</span>
+                            <span class="status status-blue">Inactive</span>
                         @endif
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-3">No services found.</td></tr>
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-state-title">No services found</div></div></td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    {{ $services->links() }}
 </div>
-<div class="mt-3">{{ $services->links() }}</div>
 @endsection

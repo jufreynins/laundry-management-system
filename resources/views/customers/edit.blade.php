@@ -9,61 +9,69 @@
         <form method="POST" action="{{ route('customers.update', $customer) }}">
             @csrf
             @method('PATCH')
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Name</label>
                 <input type="text" name="name" class="form-control" value="{{ old('name', $customer->name) }}" required>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Phone</label>
                 <input type="text" name="phone" class="form-control" value="{{ old('phone', $customer->phone) }}" required>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Email</label>
                 <input type="email" name="email" class="form-control" value="{{ old('email', $customer->email) }}">
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Address</label>
                 <input type="text" name="address" class="form-control" value="{{ old('address', $customer->address) }}">
             </div>
-            <div class="row">
-                <div class="col-md-5 mb-3">
+            <div class="form-row cols-3">
+                <div class="form-group mb-0">
                     <label class="form-label">City</label>
                     <input type="text" name="city" class="form-control" value="{{ old('city', $customer->city) }}">
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="form-group mb-0">
                     <label class="form-label">State</label>
                     <input type="text" name="state" class="form-control" maxlength="2" value="{{ old('state', $customer->state) }}">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="form-group mb-0">
                     <label class="form-label">Zip</label>
                     <input type="text" name="zip" class="form-control" value="{{ old('zip', $customer->zip) }}">
                 </div>
             </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" name="marketing_consent" value="1" class="form-check-input" id="marketing_consent" {{ $customer->marketing_consent ? 'checked' : '' }}>
-                <label class="form-check-label" for="marketing_consent">Customer consents to marketing communications</label>
+            <div class="form-group">
+                <label class="form-check">
+                    <input type="checkbox" name="marketing_consent" value="1" {{ $customer->marketing_consent ? 'checked' : '' }}>
+                    Customer consents to marketing communications
+                </label>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label d-block">Order Update Notifications</label>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" name="notify_email" value="1" class="form-check-input" id="notify_email" {{ $customer->notify_email ? 'checked' : '' }}>
-                    <label class="form-check-label" for="notify_email">Email</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" name="notify_sms" value="1" class="form-check-input" id="notify_sms" {{ $customer->notify_sms ? 'checked' : '' }}>
-                    <label class="form-check-label" for="notify_sms">SMS</label>
+                <div class="d-flex gap-3">
+                    <label class="form-check">
+                        <input type="checkbox" name="notify_email" value="1" {{ $customer->notify_email ? 'checked' : '' }}>
+                        Email
+                    </label>
+                    <label class="form-check">
+                        <input type="checkbox" name="notify_sms" value="1" {{ $customer->notify_sms ? 'checked' : '' }}>
+                        SMS
+                    </label>
                 </div>
             </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" name="active" value="1" class="form-check-input" id="active" {{ $customer->active ? 'checked' : '' }}>
-                <label class="form-check-label" for="active">Active</label>
+            <div class="form-group">
+                <label class="form-check">
+                    <input type="checkbox" name="active" value="1" {{ $customer->active ? 'checked' : '' }}>
+                    Active
+                </label>
             </div>
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Notes</label>
                 <textarea name="notes" class="form-control" rows="3">{{ old('notes', $customer->notes) }}</textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="{{ route('customers.show', $customer) }}" class="btn btn-link">Cancel</a>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ route('customers.show', $customer) }}" class="btn btn-ghost">Cancel</a>
+            </div>
         </form>
     </div>
 </div>
