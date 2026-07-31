@@ -6,7 +6,7 @@
     <title>Forgot Password - {{ config('app.name', 'Laundry Manager') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-light">
+<body class="legacy-content bg-light">
     <div class="d-flex align-items-center justify-content-center vh-100">
         <div class="card shadow-sm" style="width: 380px;">
             <div class="card-body p-4">
