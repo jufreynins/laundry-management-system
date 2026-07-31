@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Demo Accounts Panel
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the login page displays a list of seeded demo accounts
+    | (one per role) with a shared password, so a portfolio visitor can log
+    | in without registering. Must stay off for any deployment with real
+    | customer/business data. See DemoDataSeeder and DECISIONS.md.
+    |
+    */
+
+    'show_demo_accounts' => (bool) env('SHOW_DEMO_ACCOUNTS', false),
+
 ];
