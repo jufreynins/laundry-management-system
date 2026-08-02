@@ -43,6 +43,19 @@ enum OrderStatus: string
     }
 
     /**
+     * Badge/accent color key used by the .status-* and .badge-* CSS classes.
+     */
+    public function color(): string
+    {
+        return match($this) {
+            self::READY_FOR_PICKUP, self::COMPLETED => 'green',
+            self::CANCELLED => 'red',
+            self::DRAFT, self::ON_HOLD => 'yellow',
+            default => 'blue',
+        };
+    }
+
+    /**
      * Simplified status shown to customers on the public tracking page.
      * Internal production steps (sorting, washing, drying, etc.) are
      * intentionally collapsed into "In Progress" — customers don't need

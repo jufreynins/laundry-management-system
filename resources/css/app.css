@@ -13,3 +13,31 @@
     font-size: 0.75rem;
     padding: 0.3em 0.6em;
 }
+
+/* Colored stat-icon variants for the .stat/.stat-icon dashboard widget */
+.stat-icon-primary { background: var(--primary-lt); color: var(--primary); }
+.stat-icon-green { background: var(--green-lt); color: var(--green); }
+.stat-icon-yellow { background: var(--yellow-lt); color: #b45309; }
+.stat-icon-azure { background: var(--azure-lt); color: var(--azure); }
+
+/* Colored left-border accents for stat cards */
+.card-accent-primary { border-left: 3px solid var(--primary); }
+.card-accent-green { border-left: 3px solid var(--green); }
+.card-accent-yellow { border-left: 3px solid var(--yellow); }
+.card-accent-azure { border-left: 3px solid var(--azure); }
+
+/* Missing badge color to round out the existing badge-blue/red/green/gray/teal set */
+.badge-yellow { color: #b45309; background: #f59f0026; }
+
+/*
+ * gentelella-scoped.css declares the base .badge rule (background/color)
+ * AFTER .badge-green/.badge-gray in source order, so with equal specificity
+ * the base rule silently wins and every colored badge renders neutral gray.
+ * Compound selectors here out-specificity the base rule regardless of order.
+ */
+.badge.badge-green { color: var(--green); background: var(--green-lt); }
+.badge.badge-red { color: #f87171; background: #d6393926; }
+.badge.badge-blue { color: #60a5fa; background: #4299e11f; }
+.badge.badge-yellow { color: #b45309; background: #f59f0026; }
+.badge.badge-gray { color: var(--text-muted); background: var(--bg-surface-secondary); }
+.badge.badge-teal { color: var(--primary); background: var(--primary-lt); }

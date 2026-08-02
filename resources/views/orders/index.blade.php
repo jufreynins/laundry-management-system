@@ -37,15 +37,7 @@
                     <td class="cell-mono"><a href="{{ route('orders.show', $order) }}">{{ $order->order_number }}</a></td>
                     <td>{{ $order->customer->name }}</td>
                     <td>
-                        @php
-                        $statusColor = match ($order->status->value) {
-                            'ready_for_pickup', 'completed' => 'green',
-                            'cancelled' => 'red',
-                            'draft', 'on_hold' => 'yellow',
-                            default => 'blue',
-                        };
-                        @endphp
-                        <span class="status status-{{ $statusColor }}">{{ $order->status->label() }}</span>
+                        <span class="status status-{{ $order->status->color() }}">{{ $order->status->label() }}</span>
                     </td>
                     <td>{{ $order->promised_at?->format('m/d/Y g:i A') ?? '-' }}</td>
                     <td>${{ number_format($order->total, 2) }}</td>
