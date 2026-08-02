@@ -88,7 +88,7 @@
 @endphp
 
 @auth
-<aside class="sidebar" aria-label="Primary navigation">
+<aside class="sidebar" id="sidebar" aria-label="Primary navigation">
     <div class="sidebar-brand">
         <div class="brand-icon">L</div>
         <div class="brand-name">{{ config('app.name', 'Laundry Manager') }}</div>
@@ -119,6 +119,8 @@
         </div>
     </div>
 </aside>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
 
 <header class="topbar">
     <div class="topbar-left">
